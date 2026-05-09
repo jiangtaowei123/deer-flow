@@ -1,0 +1,23 @@
+{
+  "scene_type": "outdoor_urban",
+  "scene_name": "城市场景",
+  "scene_description": "都市街景背景，适合时尚休闲风格服装",
+  "default_prompt_template": "Fashion model wearing {product_description}, urban street photography, modern city background, golden hour lighting, natural sunlight, candid pose, editorial fashion photography, lifestyle brand aesthetic, bokeh background, 8k ultra high definition, sharp details",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, bad proportions, extra limbs, missing fingers, extra fingers, ugly, poorly drawn face, mutation, mutated, blurry, out of focus, watermark, text, logo, cluttered background, dirty environment",
+  "lighting_setup": {
+    "type": "natural_sunlight",
+    "description": "自然光+黄金时段"
+  },
+  "camera_settings": {
+    "style": "street_fashion",
+    "depth_of_field": "medium",
+    "focus": "model"
+  },
+  "recommended_settings": {
+    "steps": 30,
+    "cfg_scale": 7,
+    "sampler": "DPM++ 2M Karras",
+    "width": 1024,
+    "height": 1280
+  }
+}

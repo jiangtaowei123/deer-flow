@@ -1,0 +1,23 @@
+{
+  "scene_type": "lifestyle_home",
+  "scene_name": "家居生活场景",
+  "scene_description": "温馨家居环境，适合日常服装展示",
+  "default_prompt_template": "Fashion model wearing {product_description}, cozy home interior background, warm living room aesthetic, natural window lighting, lifestyle brand photography, comfortable casual atmosphere, lifestyle content creation, soft bokeh, 8k ultra high definition, clean modern home",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, bad proportions, extra limbs, missing fingers, extra fingers, ugly, poorly drawn face, mutation, mutated, blurry, out of focus, watermark, text, logo, cluttered messy room, dirty environment",
+  "lighting_setup": {
+    "type": "window_natural",
+    "description": "自然窗光"
+  },
+  "camera_settings": {
+    "style": "lifestyle_home",
+    "depth_of_field": "shallow",
+    "focus": "model"
+  },
+  "recommended_settings": {
+    "steps": 30,
+    "cfg_scale": 7,
+    "sampler": "DPM++ 2M Karras",
+    "width": 1024,
+    "height": 1280
+  }
+}

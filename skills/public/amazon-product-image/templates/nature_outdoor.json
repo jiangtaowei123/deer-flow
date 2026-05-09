@@ -1,0 +1,23 @@
+{
+  "scene_type": "nature_outdoor",
+  "scene_name": "自然户外场景",
+  "scene_description": "花园/公园等自然环境，适合度假风格服装",
+  "default_prompt_template": "Fashion model wearing {product_description}, natural outdoor garden background, lush green foliage bokeh, soft natural lighting, golden hour sun flare, vacation resort aesthetic, travel fashion photography, relaxed elegant pose, dreamy atmosphere, 8k ultra high definition",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, bad proportions, extra limbs, missing fingers, extra fingers, ugly, poorly drawn face, mutation, mutated, blurry, out of focus, watermark, text, logo, urban cityscape, industrial background",
+  "lighting_setup": {
+    "type": "golden_hour",
+    "description": "黄金时段自然光"
+  },
+  "camera_settings": {
+    "style": "travel_fashion",
+    "depth_of_field": "shallow",
+    "focus": "model"
+  },
+  "recommended_settings": {
+    "steps": 30,
+    "cfg_scale": 7,
+    "sampler": "DPM++ 2M Karras",
+    "width": 1024,
+    "height": 1280
+  }
+}
