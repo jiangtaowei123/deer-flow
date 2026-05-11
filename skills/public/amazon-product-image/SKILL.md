@@ -105,6 +105,11 @@ After generation:
 | `--lora-weight` | No | 0.8 | LoRA weight (0-1) |
 | `--custom-prompt` | No | - | Override prompt |
 | `--custom-negative` | No | - | Override negative prompt |
+| `--reference-image` | No | - | Reference image path (img2img mode) |
+| `--denoising-strength` | No | 0.75 | Denoising strength for img2img (0-1) |
+| `--controlnet` | No | False | Enable ControlNet for pose preservation |
+| `--controlnet-model` | No | openpose | ControlNet model type |
+| `--include-arms` | No | False | Force both arms visible in output |
 
 ## Scene Template Customization
 

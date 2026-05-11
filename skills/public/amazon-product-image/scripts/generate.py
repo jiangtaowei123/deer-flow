@@ -12,7 +12,7 @@ from PIL import Image
 
 
 class StableDiffusionBatchGenerator:
-    """Stable Diffusion 批量图片生成器"""
+    """Stable Diffusion 批量图片生成器 - 支持文生图和图生图"""
 
     def __init__(
         self,
@@ -50,6 +50,7 @@ class StableDiffusionBatchGenerator:
         scene_config: dict,
         custom_prompt: Optional[str] = None,
         custom_negative: Optional[str] = None,
+        include_arms: bool = False,
     ) -> tuple[str, str]:
         """构建生成提示词"""
         positive_prompt = custom_prompt or scene_config.get("default_prompt_template", "")
@@ -59,6 +60,10 @@ class StableDiffusionBatchGenerator:
             positive_prompt = positive_prompt.replace("{product_description}", product_description)
         elif product_description and product_description not in positive_prompt:
             positive_prompt = f"{product_description}, {positive_prompt}"
+
+        if include_arms:
+            positive_prompt = f"{positive_prompt}, full body view, both arms visible, two arms showing, arms away from body, natural arm position"
+            negative_prompt = f"{negative_prompt}, one arm hidden, single arm, missing arm, arm behind back, arm cut off"
 
         return positive_prompt, negative_prompt
 
@@ -71,6 +76,15 @@ class StableDiffusionBatchGenerator:
             "width": 1024,
             "height": 1280,
         })
+
+    def _image_to_base64(self, image_path: str) -> str:
+        """将图片转换为 base64"""
+        try:
+            with open(image_path, "rb") as f:
+                return base64.b64encode(f.read()).decode("utf-8")
+        except Exception as e:
+            print(f"Error encoding image {image_path}: {e}")
+            return ""
 
     def generate_single(
         self,
@@ -89,10 +103,24 @@ class StableDiffusionBatchGenerator:
         clip_skip: int = 1,
         lora_name: Optional[str] = None,
         lora_weight: float = 0.8,
+        reference_image: Optional[str] = None,
+        denoising_strength: float = 0.75,
+        controlnet_enabled: bool = False,
+        controlnet_model: str = "openpose",
+        controlnet_weight: float = 1.0,
     ) -> dict:
-        """生成单张图片"""
+        """生成单张图片（支持文生图和图生图）"""
+        import io
+
         if not self._check_sd_status():
             return {"success": False, "error": "Stable Diffusion WebUI 未运行，请先启动"}
+
+        is_img2img = reference_image is not None and os.path.exists(reference_image)
+
+        if is_img2img:
+            base64_img = self._image_to_base64(reference_image)
+            if not base64_img:
+                return {"success": False, "error": "无法读取参考图片"}
 
         payload = {
             "prompt": prompt,
@@ -106,22 +134,45 @@ class StableDiffusionBatchGenerator:
             "clip_skip": clip_skip,
         }
 
+        if lora_name:
+            payload["prompt"] = f"<lora:{lora_name}:{lora_weight}> {prompt}"
+
         if enable_hr:
             payload.update({
                 "enable_hr": True,
                 "hr_scale": hr_scale,
                 "hr_second_pass_steps": hr_steps,
-                "denoising_strength": 0.4,
+                "denoising_strength": 0.4 if not is_img2img else denoising_strength,
             })
 
-        if lora_name:
-            payload["prompt"] = f"<lora:{lora_name}:{lora_weight}> {prompt}"
+        if is_img2img:
+            payload.update({
+                "init_images": [base64_img],
+                "denoising_strength": denoising_strength,
+            })
+
+        if controlnet_enabled and is_img2img:
+            payload["alwayson_scripts"] = {
+                "controlnet": {
+                    "args": [
+                        {
+                            "input_image": base64_img,
+                            "module": controlnet_model,
+                            "model": f"control_{controlnet_model}_sd15 [fef5e48e]",
+                            "weight": controlnet_weight,
+                            "resize_mode": "Crop and Resize",
+                            "lowvram": False,
+                        }
+                    ]
+                }
+            }
 
         output_path = self.output_dir / output_filename
 
         try:
+            endpoint = f"{self.sd_url}/sdapi/v1/img2img" if is_img2img else f"{self.sd_url}/sdapi/v1/txt2img"
             response = requests.post(
-                f"{self.sd_url}/sdapi/v1/txt2img",
+                endpoint,
                 json=payload,
                 timeout=300,
             )
@@ -157,6 +208,10 @@ class StableDiffusionBatchGenerator:
         num_variants: int = 2,
         custom_prompts: Optional[dict] = None,
         custom_negatives: Optional[dict] = None,
+        reference_image: Optional[str] = None,
+        denoising_strength: float = 0.75,
+        controlnet_enabled: bool = False,
+        include_arms: bool = False,
         **generation_kwargs,
     ) -> dict:
         """批量生成多场景多变体图片"""
@@ -177,6 +232,7 @@ class StableDiffusionBatchGenerator:
                 scene_config,
                 custom_prompts.get(scene) if custom_prompts else None,
                 custom_negatives.get(scene) if custom_negatives else None,
+                include_arms=include_arms,
             )
             settings = self._get_default_settings(scene_config)
             settings.update(generation_kwargs)
@@ -188,6 +244,9 @@ class StableDiffusionBatchGenerator:
                     "negative_prompt": negative,
                     "output_filename": filename,
                     "seed": -1,
+                    "reference_image": reference_image,
+                    "denoising_strength": denoising_strength,
+                    "controlnet_enabled": controlnet_enabled,
                     **settings,
                 })
 
@@ -247,6 +306,13 @@ if __name__ == "__main__":
     parser.add_argument("--lora-weight", type=float, default=0.8, help="LoRA 权重")
     parser.add_argument("--custom-prompt", help="自定义正向提示词（覆盖场景模板）")
     parser.add_argument("--custom-negative", help="自定义负向提示词")
+    
+    parser.add_argument("--reference-image", help="参考图片路径（用于图生图）")
+    parser.add_argument("--denoising-strength", type=float, default=0.75, help="去噪强度（图生图专用，0-1）")
+    parser.add_argument("--controlnet", action="store_true", help="启用 ControlNet 保持姿势")
+    parser.add_argument("--controlnet-model", default="openpose", help="ControlNet 模型类型")
+    
+    parser.add_argument("--include-arms", action="store_true", help="强制显示两个胳膊")
 
     args = parser.parse_args()
 
@@ -269,6 +335,8 @@ if __name__ == "__main__":
     print(f"开始批量生成: {args.product_description}")
     print(f"场景: {args.scenes}")
     print(f"每场景变体数: {args.num_variants}")
+    print(f"参考图片: {args.reference_image or '无'}")
+    print(f"强制显示双臂: {'是' if args.include_arms else '否'}")
     print(f"预计生成: {len(args.scenes) * args.num_variants} 张图片")
     print("-" * 50)
 
@@ -279,6 +347,10 @@ if __name__ == "__main__":
         num_variants=args.num_variants,
         custom_prompts=custom_prompts,
         custom_negatives=custom_negatives,
+        reference_image=args.reference_image,
+        denoising_strength=args.denoising_strength,
+        controlnet_enabled=args.controlnet,
+        include_arms=args.include_arms,
         width=args.width,
         height=args.height,
         steps=args.steps,
