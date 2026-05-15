@@ -363,14 +363,18 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 50)
     print(f"生成完成!")
-    print(f"成功: {result['success_count']}/{result['total']}")
-    print(f"失败: {result['failed_count']}")
+    
+    if result.get("success"):
+        print(f"成功: {result.get('success_count', 0)}/{result.get('total', 0)}")
+        print(f"失败: {result.get('failed_count', 0)}")
 
-    if result.get("results"):
-        print("\n生成详情:")
-        for idx, res in enumerate(result["results"], 1):
-            status = "✓" if res.get("success") else "✗"
-            if res.get("success"):
-                print(f"  {status} {Path(res['output_path']).name} (seed: {res.get('seed', 'N/A')})")
-            else:
-                print(f"  {status} {res.get('error', '未知错误')}")
+        if result.get("results"):
+            print("\n生成详情:")
+            for idx, res in enumerate(result["results"], 1):
+                status = "✓" if res.get("success") else "✗"
+                if res.get("success"):
+                    print(f"  {status} {Path(res['output_path']).name} (seed: {res.get('seed', 'N/A')})")
+                else:
+                    print(f"  {status} {res.get('error', '未知错误')}")
+    else:
+        print(f"错误: {result.get('error', '未知错误')}")
