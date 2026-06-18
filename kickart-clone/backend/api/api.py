@@ -286,6 +286,104 @@ async def generate_sync(request: GenerateRequest):
 
 
 # ============================================================================
+# Lead Agent 编排 API（V2 阶段）
+# ============================================================================
+
+# 添加 Lead Agent 路径
+sys.path.insert(0, str(PROJECT_ROOT / "agents" / "lead_agent" / "scripts"))
+
+from orchestrator import LeadAgentOrchestrator, WorkflowType
+
+# 全局编排器实例
+LEAD_AGENT = LeadAgentOrchestrator(
+    output_dir=os.environ.get("LEAD_AGENT_OUTPUT_DIR", "/mnt/user-data/workspace/lead_agent_runs")
+)
+
+
+class OrchestrateRequest(BaseModel):
+    """Lead Agent 编排请求"""
+    input_value: str = Field(..., description="商品 URL/ID/描述")
+    workflow: str = Field("video", description="工作流类型：image/video/storyboard")
+    num_scenes: int = Field(6, ge=3, le=10, description="场景数")
+    aspect_ratio: str = Field("9:16", description="宽高比")
+    voice: str = Field("xiaoxiao", description="TTS 音色")
+
+
+@app.post("/orchestrate", response_model=TaskResponse)
+async def orchestrate(request: OrchestrateRequest, background_tasks: BackgroundTasks):
+    """Lead Agent 端到端编排（异步）"""
+    run = LEAD_AGENT.plan_workflow(
+        input_value=request.input_value,
+        workflow_type=WorkflowType(request.workflow),
+        num_scenes=request.num_scenes,
+        aspect_ratio=request.aspect_ratio,
+        voice=request.voice,
+    )
+    # 异步执行
+    background_tasks.add_task(LEAD_AGENT.execute_workflow, run.run_id)
+    return TaskResponse(
+        task_id=run.run_id,
+        status="running",
+        message=f"Lead Agent 已启动 {request.workflow} 工作流",
+    )
+
+
+@app.post("/orchestrate/sync")
+async def orchestrate_sync(request: OrchestrateRequest):
+    """Lead Agent 端到端编排（同步，阻塞直到完成）"""
+    run = LEAD_AGENT.plan_workflow(
+        input_value=request.input_value,
+        workflow_type=WorkflowType(request.workflow),
+        num_scenes=request.num_scenes,
+        aspect_ratio=request.aspect_ratio,
+        voice=request.voice,
+    )
+    result = LEAD_AGENT.execute_workflow(run.run_id)
+    return result.final_outputs
+
+
+@app.get("/orchestrate/{run_id}")
+async def get_orchestration(run_id: str):
+    """查询编排运行状态"""
+    run = LEAD_AGENT.get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail=f"运行不存在: {run_id}")
+    return {
+        "run_id": run.run_id,
+        "workflow_type": run.workflow_type.value,
+        "status": run.status.value,
+        "tasks": [
+            {
+                "task_id": t.task_id,
+                "agent": t.agent_name,
+                "status": t.status.value,
+                "degraded": t.degraded,
+                "retries": t.retries,
+            }
+            for t in run.tasks
+        ],
+        "degradation_log": run.degradation_log,
+        "final_outputs": run.final_outputs if run.status.value in ("success", "failed") else None,
+    }
+
+
+@app.get("/orchestrate")
+async def list_orchestrations():
+    """列出所有编排运行"""
+    return {
+        "runs": [
+            {
+                "run_id": r.run_id,
+                "workflow_type": r.workflow_type.value,
+                "status": r.status.value,
+                "input": r.input_value[:80],
+            }
+            for r in LEAD_AGENT.list_runs()
+        ]
+    }
+
+
+# ============================================================================
 # 启动入口
 # ============================================================================
 

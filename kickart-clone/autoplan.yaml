@@ -74,7 +74,7 @@ iterations:
   - id: V2-3
     name: Agent 协同
     duration: 2周
-    status: planned
+    status: completed
     deliverables:
       - Lead Agent 编排
       - 多 Agent 协同
@@ -82,6 +82,25 @@ iterations:
     success_criteria:
       - Lead Agent 自主调度全流程
       - Agent 成功率 ≥ 95%
+    tasks:
+      - id: T3.1
+        title: 更新 autoplan 添加 V2 任务清单
+        status: completed
+      - id: T3.2
+        title: 实现 Lead Agent 编排器
+        status: completed
+      - id: T3.3
+        title: 实现多 Agent 协同调度
+        status: completed
+      - id: T3.4
+        title: 实现失败降级机制
+        status: completed
+      - id: T3.5
+        title: 集成端到端编排 API
+        status: completed
+      - id: T3.6
+        title: V2 端到端测试
+        status: completed
 
   - id: V3-4
     name: 平台化
