@@ -26,19 +26,19 @@ iterations:
         status: completed
       - id: T1.2
         title: 实现 Product Parser Agent
-        status: pending
+        status: completed
       - id: T1.3
         title: 扩充场景模板库至 15 个
-        status: pending
+        status: completed
       - id: T1.4
         title: 完善 amazon-product-image skill
         status: completed
       - id: T1.5
         title: 实现批量生成 API
-        status: pending
+        status: completed
       - id: T1.6
         title: 端到端测试
-        status: pending
+        status: completed
 
   - id: V1-2
     name: 视频成片

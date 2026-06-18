@@ -1,0 +1,23 @@
+{
+  "scene_type": "minimal_abstract",
+  "scene_name": "简约抽象背景",
+  "scene_description": "纯色渐变背景，适合白底图需求",
+  "default_prompt_template": "Fashion model wearing {product_description}, solid gradient background transitioning from light gray to white, minimalist fashion photography, clean studio setup, modern aesthetic, professional e-commerce product shot, centered composition, symmetrical pose, ultra sharp, 8k high definition, commercial photography",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, bad proportions, extra limbs, missing fingers, extra fingers, ugly, poorly drawn face, mutation, mutated, blurry, out of focus, watermark, text, logo, busy pattern background, clutter",
+  "lighting_setup": {
+    "type": "soft_dual",
+    "description": "双侧柔光"
+  },
+  "camera_settings": {
+    "style": "minimal_product",
+    "depth_of_field": "medium",
+    "focus": "product_centered"
+  },
+  "recommended_settings": {
+    "steps": 30,
+    "cfg_scale": 7,
+    "sampler": "DPM++ 2M Karras",
+    "width": 1024,
+    "height": 1280
+  }
+}

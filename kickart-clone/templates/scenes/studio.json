@@ -1,0 +1,23 @@
+{
+  "scene_type": "studio",
+  "scene_name": "摄影棚拍摄",
+  "scene_description": "专业电商摄影棚场景，适合服装模特展示",
+  "default_prompt_template": "Professional e-commerce studio photography, {product_description}, fashion model wearing the clothing, clean white seamless background, softbox lighting setup, high-end fashion magazine quality, sharp focus, detailed fabric texture, 8k ultra high definition, commercial photography",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, bad proportions, extra limbs, missing fingers, extra fingers, ugly, poorly drawn face, mutation, mutated, blurry, out of focus, watermark, text, logo, busy background, cluttered background",
+  "lighting_setup": {
+    "type": "softbox",
+    "description": "经典电商棚拍三点布光"
+  },
+  "camera_settings": {
+    "style": "fashion_editorial",
+    "depth_of_field": "shallow",
+    "focus": "product_and_model"
+  },
+  "recommended_settings": {
+    "steps": 30,
+    "cfg_scale": 7,
+    "sampler": "DPM++ 2M Karras",
+    "width": 1024,
+    "height": 1280
+  }
+}
