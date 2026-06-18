@@ -105,14 +105,36 @@ iterations:
   - id: V3-4
     name: 平台化
     duration: 2周
-    status: planned
+    status: completed
     deliverables:
       - JNPF6.2 集成
       - 复利系统指令集
       - 监控告警
+      - 多租户支持
     success_criteria:
       - 可运营的营销创作平台
       - 支持多租户
+      - 对齐 JNPF6.2 低代码平台规范
+      - 集成复利系统指令集
+    tasks:
+      - id: T4.1
+        title: 更新 autoplan 添加 V3 任务清单
+        status: completed
+      - id: T4.2
+        title: 实现 JNPF6.2 适配层
+        status: completed
+      - id: T4.3
+        title: 集成复利系统指令集
+        status: completed
+      - id: T4.4
+        title: 实现多租户支持
+        status: completed
+      - id: T4.5
+        title: 实现监控告警
+        status: completed
+      - id: T4.6
+        title: V3 端到端测试
+        status: completed
 
 # 度量体系
 metrics:
