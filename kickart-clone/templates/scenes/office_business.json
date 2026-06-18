@@ -1,0 +1,10 @@
+{
+  "scene_type": "office_business",
+  "scene_name": "商务办公场景",
+  "scene_description": "现代办公室背景，适合正装、商务休闲装",
+  "default_prompt_template": "Fashion model wearing {product_description}, modern office interior background, glass walls, professional business environment, natural office lighting, corporate fashion photography, confident pose, ultra sharp, 8k",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, watermark, text, logo, dirty, cluttered office, casual environment",
+  "recommended_settings": {
+    "steps": 30, "cfg_scale": 7, "sampler": "DPM++ 2M Karras", "width": 1024, "height": 1280
+  }
+}

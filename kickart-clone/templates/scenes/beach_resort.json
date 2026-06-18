@@ -1,0 +1,10 @@
+{
+  "scene_type": "beach_resort",
+  "scene_name": "海滩度假场景",
+  "scene_description": "热带海滩背景，适合度假风、泳装、夏装",
+  "default_prompt_template": "Fashion model wearing {product_description}, tropical beach background, crystal clear ocean, palm trees, sunny day, vacation resort, beach fashion photography, natural lighting, ultra sharp, 8k",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, watermark, text, logo, dirty, cluttered, urban cityscape",
+  "recommended_settings": {
+    "steps": 30, "cfg_scale": 7, "sampler": "DPM++ 2M Karras", "width": 1024, "height": 1280
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "scene_type": "gym_fitness",
+  "scene_name": "健身房运动场景",
+  "scene_description": "健身房背景，适合运动装、瑜伽服、健身服",
+  "default_prompt_template": "Athletic model wearing {product_description}, modern gym interior background, fitness equipment, dynamic pose, energetic atmosphere, sport fashion photography, dramatic lighting, ultra sharp, 8k",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, watermark, text, logo, dirty gym, cluttered equipment, static pose",
+  "recommended_settings": {
+    "steps": 30, "cfg_scale": 7, "sampler": "DPM++ 2M Karras", "width": 1024, "height": 1280
+  }
+}

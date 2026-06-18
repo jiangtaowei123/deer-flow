@@ -1,0 +1,10 @@
+{
+  "scene_type": "vintage_retro",
+  "scene_name": "复古怀旧场景",
+  "scene_description": "复古场景，适合复古风、怀旧品牌",
+  "default_prompt_template": "Fashion model wearing {product_description}, vintage retro background, 70s 80s aesthetic, warm film tones, analog photography style, nostalgic atmosphere, ultra sharp, 8k",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, watermark, text, logo, modern, futuristic, digital look",
+  "recommended_settings": {
+    "steps": 30, "cfg_scale": 7, "sampler": "DPM++ 2M Karras", "width": 1024, "height": 1280
+  }
+}

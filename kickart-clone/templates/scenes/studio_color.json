@@ -1,0 +1,10 @@
+{
+  "scene_type": "studio_color",
+  "scene_name": "彩色棚拍场景",
+  "scene_description": "彩色背景棚拍，适合活力、年轻品牌",
+  "default_prompt_template": "Fashion model wearing {product_description}, vibrant colored studio background, professional lighting setup, fashion magazine cover style, bold colors, high contrast, ultra sharp, 8k",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, watermark, text, logo, dirty, dull colors, low contrast",
+  "recommended_settings": {
+    "steps": 30, "cfg_scale": 7, "sampler": "DPM++ 2M Karras", "width": 1024, "height": 1280
+  }
+}

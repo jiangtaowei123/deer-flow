@@ -1,0 +1,10 @@
+{
+  "scene_type": "autumn_park",
+  "scene_name": "秋日公园场景",
+  "scene_description": "秋叶公园背景，适合秋冬装、风衣、毛衣",
+  "default_prompt_template": "Fashion model wearing {product_description}, autumn park background, golden fall leaves, warm sunlight, cozy atmosphere, seasonal fashion photography, natural pose, ultra sharp, 8k",
+  "default_negative_prompt": "blurry, low quality, deformed, bad anatomy, watermark, text, logo, dirty, modern urban, summer vibes",
+  "recommended_settings": {
+    "steps": 30, "cfg_scale": 7, "sampler": "DPM++ 2M Karras", "width": 1024, "height": 1280
+  }
+}
