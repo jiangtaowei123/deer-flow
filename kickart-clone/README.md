@@ -7,37 +7,90 @@
 
 复刻 [Kickart](https://bytedance.larkoffice.com/docx/SKCGdayW8or20dx2vm5cixQmnBg) 一站式营销创作平台，实现：
 - **对话式一键成片**：商品URL → 创意 → 故事板 → 完整视频
-- **Agent 自主规划**：多 Agent 协同，自主调度
+- **Agent 自主规划**：6 个专业 Agent 协同，自主调度
 - **多场景素材生成**：15+ 场景模板，批量生成
+- **平台化运营**：JNPF6.2 适配 + 多租户 + 监控告警
 
-## 🏗️ 架构
+## 📊 项目状态
+
+**全部 4 个迭代完成，24/24 任务通过，17 个端到端测试通过**
+
+| 迭代 | 名称 | 任务 | 状态 |
+|------|------|------|------|
+| MVP-1 | 图像生成闭环 | 6/6 | ✅ 完成 |
+| V1-2 | 视频成片 | 6/6 | ✅ 完成 |
+| V2-3 | Agent 协同 | 6/6 | ✅ 完成 |
+| V3-4 | 平台化 | 6/6 | ✅ 完成 |
+
+## 🏗️ 架构总览
 
 ```
-用户交互 → gstack 编排 → DeerFlow Agent → SD/VLM/Video → JNPF6.2
+┌─────────────────────────────────────────────────────────────┐
+│                     用户交互层（JNPF6.2）                     │
+│  Dashboard │ Creative Form │ Run Detail │ Runs List         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    平台层（V3 平台化）                        │
+│  JNPF 适配 │ 复利指令集 │ 多租户 │ 监控告警                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                   Lead Agent 编排层（V2）                    │
+│   任务规划 → Agent 调度 → 失败降级 → 状态跟踪                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    专业 Agent 层（V1）                       │
+│  ProductParser → Creative → Storyboard → ImageGen          │
+│                                          ↓                  │
+│                                   TTS → VideoGen           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    基础能力层（MVP）                         │
+│  Stable Diffusion │ ffmpeg │ edge-tts │ 15 场景模板         │
+└─────────────────────────────────────────────────────────────┘
 ```
-
-详细方案见 [PLAN.md](PLAN.md)
 
 ## 📁 项目结构
 
 ```
 kickart-clone/
-├── PLAN.md                    # 落地方案
-├── autoplan.yaml              # gstack 自动规划配置
-├── agents/                    # 8 个专业 Agent
-│   ├── lead_agent/            # 总指挥
-│   ├── product_parser/        # 商品解析
-│   ├── creative/              # 创意生成
-│   ├── storyboard/            # 分镜设计
-│   ├── image_gen/             # 图像生成
-│   ├── video_gen/             # 视频合成
-│   ├── template/              # 模板渲染
-│   └── publish/               # 多平台发布
-├── skills/                    # DeerFlow Skills
-│   ├── product-parse/         # 商品解析
-│   └── ...
-├── templates/scenes/          # 15+ 场景模板
-└── backend/orchestrator/      # gstack 编排器
+├── agents/                         # 6 个专业 Agent
+│   ├── lead_agent/                 # Lead Agent 编排器（V2）
+│   │   ├── scripts/orchestrator.py # 自主调度 + 失败降级
+│   │   ├── SOUL.md                 # 身份定义
+│   │   └── config.yaml             # 配置
+│   ├── product_parser/             # 商品解析（MVP）
+│   ├── creative/                   # 创意脚本（V1）
+│   │   └── scripts/creative_gen.py # 5 类目模板
+│   ├── storyboard/                 # 分镜设计（V1）
+│   │   └── scripts/storyboard_gen.py
+│   ├── image_gen/                  # 图像生成（MVP）
+│   ├── tts/                        # TTS 旁白（V1）
+│   │   └── scripts/tts_gen.py      # edge-tts 6 音色
+│   └── video_gen/                  # 视频合成（V1）
+│       └── scripts/video_compose.py # Ken Burns + 字幕
+├── platform/                       # 平台层（V3）
+│   ├── jnpf/adapter.py             # JNPF6.2 适配
+│   ├── compound/instruction_set.py # 复利系统指令集
+│   ├── tenant/manager.py           # 多租户管理
+│   └── monitoring/monitor.py       # 监控告警
+├── backend/
+│   ├── api/api.py                  # FastAPI 服务（10 端点）
+│   └── orchestrator/gstack_orchestrator.py
+├── skills/product-parse/           # 商品解析 Skill
+├── templates/scenes/               # 15 个场景模板
+├── tests/e2e/                      # 端到端测试
+│   ├── test_workflow.py            # MVP 测试
+│   ├── test_v1_workflow.py         # V1 测试
+│   ├── test_v2_workflow.py         # V2 测试
+│   └── test_v3_workflow.py         # V3 测试
+├── autoplan.yaml                   # gstack 自动规划
+├── PLAN.md                         # 落地方案
+├── PROJECT_HANDBOOK.md             # 完整项目手册
+└── README.md                       # 项目入口
 ```
 
 ## 🚀 快速开始
@@ -47,56 +100,64 @@ kickart-clone/
 python backend/orchestrator/gstack_orchestrator.py
 ```
 
-### 2. 解析商品
+### 2. 启动 API 服务
 ```bash
-python skills/product-parse/scripts/parse.py \
-  --input "https://www.amazon.com/dp/B08XXX" \
-  --output /mnt/user-data/workspace/product-info.json
+cd backend/api && python api.py
+# 服务运行在 http://localhost:8765
 ```
 
-### 3. 批量生成图片
+### 3. 一键编排（Lead Agent）
 ```bash
-python /workspace/skills/public/amazon-product-image/scripts/generate.py \
-  --product-description "YOUR_PRODUCT" \
-  --product-id "SKU-001" \
-  --scenes studio outdoor_urban beach_resort gym_fitness \
-  --num-variants 2 \
-  --include-arms \
-  --enable-hr
+# 同步执行完整视频工作流
+curl -X POST http://localhost:8765/orchestrate/sync \
+  -H "Content-Type: application/json" \
+  -d '{"input_value":"优雅夏季连衣裙","workflow":"video"}'
 ```
 
-## 📊 场景模板库（15+）
+### 4. 单独使用各 Agent
+```bash
+# 创意脚本生成
+python agents/creative/scripts/creative_gen.py \
+  --product-json product.json --output creative.json
 
-| 场景 | 适用 | 文件 |
-|------|------|------|
-| studio | 棚拍 | [studio.json](templates/scenes/studio.json) |
-| outdoor_urban | 街拍 | [outdoor_urban.json](templates/scenes/outdoor_urban.json) |
-| outdoor_cafe | 咖啡馆 | [outdoor_cafe.json](templates/scenes/outdoor_cafe.json) |
-| minimal_abstract | 白底图 | [minimal_abstract.json](templates/scenes/minimal_abstract.json) |
-| nature_outdoor | 自然户外 | [nature_outdoor.json](templates/scenes/nature_outdoor.json) |
-| lifestyle_home | 家居 | [lifestyle_home.json](templates/scenes/lifestyle_home.json) |
-| beach_resort | 海滩度假 | [beach_resort.json](templates/scenes/beach_resort.json) |
-| office_business | 商务办公 | [office_business.json](templates/scenes/office_business.json) |
-| gym_fitness | 健身房 | [gym_fitness.json](templates/scenes/gym_fitness.json) |
-| luxury_interior | 奢华室内 | [luxury_interior.json](templates/scenes/luxury_interior.json) |
-| autumn_park | 秋日公园 | [autumn_park.json](templates/scenes/autumn_park.json) |
-| night_city | 夜景城市 | [night_city.json](templates/scenes/night_city.json) |
-| studio_color | 彩色棚拍 | [studio_color.json](templates/scenes/studio_color.json) |
-| rooftop | 屋顶 | [rooftop.json](templates/scenes/rooftop.json) |
-| vintage_retro | 复古怀旧 | [vintage_retro.json](templates/scenes/vintage_retro.json) |
+# 分镜生成
+python agents/storyboard/scripts/storyboard_gen.py \
+  --creative-json creative.json --output storyboard.json
 
-## 📈 迭代路线
+# TTS 旁白
+python agents/tts/scripts/tts_gen.py \
+  --storyboard-json storyboard.json --voice xiaoxiao
 
-| 阶段 | 周期 | 目标 | 状态 |
-|------|------|------|------|
-| MVP | 第1周 | 图像生成闭环 | 🔄 进行中 |
-| V1 | 第2-3周 | 视频成片 | ⏳ 计划 |
-| V2 | 第4-5周 | Agent 协同 | ⏳ 计划 |
-| V3 | 第6-7周 | 平台化 | ⏳ 计划 |
+# 视频合成
+python agents/video_gen/scripts/video_compose.py \
+  --storyboard-json storyboard.json \
+  --images-dir ./images \
+  --audio ./audio.aac
+```
+
+### 5. 平台管理
+```bash
+# 导出 JNPF6.2 配置
+python platform/jnpf/adapter.py --action export
+
+# 创建租户
+python platform/tenant/manager.py --action create --name "我的公司" --plan pro
+
+# 查看监控仪表盘
+python platform/monitoring/monitor.py --action dashboard
+```
+
+## 📚 文档
+
+- [完整项目手册](PROJECT_HANDBOOK.md) - 架构、API、部署、运维详解
+- [落地方案](PLAN.md) - gstack 方法论与 Kickart 对齐
+- [自动规划](autoplan.yaml) - 迭代任务与度量
 
 ## 🔗 依赖
 
-- [DeerFlow](https://github.com/bytedance/deer-flow) - Agent 编排
+- [DeerFlow](https://github.com/bytedance/deer-flow) - Agent 编排参考
 - [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) - 图像生成
 - [JNPF6.2](https://www.jnpfsoft.com/) - 低代码平台
 - [gstack](https://github.com/garrytan/gstack) - 方法论参考
+- [edge-tts](https://github.com/rany2/edge-tts) - TTS 语音合成
+- [ffmpeg](https://ffmpeg.org/) - 视频合成
