@@ -12,7 +12,7 @@ iterations:
   - id: MVP-1
     name: 图像生成闭环
     duration: 1周
-    status: in_progress
+    status: completed
     deliverables:
       - 多场景批量图像生成
       - 商品素材解析
@@ -43,7 +43,7 @@ iterations:
   - id: V1-2
     name: 视频成片
     duration: 2周
-    status: planned
+    status: completed
     deliverables:
       - 故事板生成
       - 视频合成
@@ -51,6 +51,25 @@ iterations:
     success_criteria:
       - 输入商品 URL → 输出 30s 营销视频
       - 端到端耗时 ≤ 10 分钟
+    tasks:
+      - id: T2.1
+        title: 更新 autoplan 添加 V1 任务清单
+        status: completed
+      - id: T2.2
+        title: 实现 Creative Agent 脚本生成
+        status: completed
+      - id: T2.3
+        title: 实现 Storyboard Agent 分镜生成
+        status: completed
+      - id: T2.4
+        title: 实现 Video Agent 视频合成
+        status: completed
+      - id: T2.5
+        title: 集成 TTS 旁白
+        status: completed
+      - id: T2.6
+        title: V1 端到端测试
+        status: completed
 
   - id: V2-3
     name: Agent 协同
