@@ -1,0 +1,25 @@
+# Kickart Clone Prometheus 配置
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Kickart API 指标
+  - job_name: "kickart-api"
+    static_configs:
+      - targets: ["kickart-api:8765"]
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  # Prometheus 自监控
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+
+rule_files:
+  # - "alerts.yml"
