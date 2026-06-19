@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kickart 营销创作平台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .layout { display: flex; min-height: 100vh; }
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .logo { padding: 0 24px 24px; font-size: 20px; font-weight: 700; color: var(--primary); }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 24px; cursor: pointer; color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .nav-item:hover { background: rgba(99,102,241,0.1); color: var(--text); }
+        .nav-item.active { background: rgba(99,102,241,0.15); color: var(--primary); border-right: 3px solid var(--primary); }
+        .nav-icon { font-size: 18px; width: 20px; text-align: center; }
+        /* 主内容 */
+        .main { flex: 1; margin-left: 240px; padding: 32px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .page-desc { color: var(--text-muted); margin-bottom: 32px; }
+        /* 卡片 */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px;
+        }
+        .stat-label { color: var(--text-muted); font-size: 13px; margin-bottom: 8px; }
+        .stat-value { font-size: 32px; font-weight: 700; }
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        /* 表单 */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 12px 16px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text); font-size: 14px; transition: border 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none; border-color: var(--primary);
+        }
+        .form-textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        /* 按钮 */
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #475569; }
+        /* 表格 */
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .table th { color: var(--text-muted); font-size: 13px; font-weight: 600; }
+        /* 状态徽章 */
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(16,185,129,0.15); color: var(--success); }
+        .badge-running { background: rgba(99,102,241,0.15); color: var(--primary); }
+        .badge-failed { background: rgba(239,68,68,0.15); color: var(--error); }
+        .badge-degraded { background: rgba(245,158,11,0.15); color: var(--warning); }
+        /* 进度条 */
+        .progress-bar { width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+        /* 任务时间线 */
+        .timeline { position: relative; padding-left: 32px; }
+        .timeline::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+        .timeline-item { position: relative; padding-bottom: 24px; }
+        .timeline-dot { position: absolute; left: -28px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); }
+        .timeline-dot.success { background: var(--success); }
+        .timeline-dot.running { background: var(--primary); animation: pulse 1.5s infinite; }
+        .timeline-dot.failed { background: var(--error); }
+        .timeline-dot.degraded { background: var(--warning); }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .timeline-title { font-weight: 600; margin-bottom: 4px; }
+        .timeline-meta { color: var(--text-muted); font-size: 13px; }
+        /* Toast */
+        .toast {
+            position: fixed; top: 24px; right: 24px; padding: 16px 24px;
+            background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--error); }
+        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        /* 视频预览 */
+        .video-preview { width: 100%; max-width: 360px; border-radius: 12px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="logo">🎬 Kickart</div>
+        <div class="nav-item active" onclick="showPage('dashboard')">
+            <span class="nav-icon">📊</span> 工作台
+        </div>
+        <div class="nav-item" onclick="showPage('create')">
+            <span class="nav-icon">✨</span> 新建创作
+        </div>
+        <div class="nav-item" onclick="showPage('runs')">
+            <span class="nav-icon">📋</span> 创作历史
+        </div>
+        <div class="nav-item" onclick="showPage('scenes')">
+            <span class="nav-icon">🎭</span> 场景模板
+        </div>
+        <div class="nav-item" onclick="showPage('health')">
+            <span class="nav-icon">💚</span> 系统健康
+        </div>
+    </aside>
+
+    <!-- 主内容 -->
+    <main class="main">
+        <!-- Dashboard -->
+        <div id="page-dashboard" class="page active">
+            <h1 class="page-title">工作台</h1>
+            <p class="page-desc">一站式营销创作平台总览</p>
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card"><div class="stat-label">日成片数</div><div class="stat-value" id="stat-videos">-</div></div>
+                <div class="stat-card"><div class="stat-label">日素材数</div><div class="stat-value" id="stat-assets">-</div></div>
+                <div class="stat-card"><div class="stat-label">Agent 成功率</div><div class="stat-value success" id="stat-success">-</div></div>
+                <div class="stat-card"><div class="stat-label">端到端耗时</div><div class="stat-value warning" id="stat-latency">-</div></div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:16px">最近运行</h3>
+                <div id="recent-runs"><div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div></div>
+            </div>
+        </div>
+
+        <!-- 新建创作 -->
+        <div id="page-create" class="page">
+            <h1 class="page-title">新建创作</h1>
+            <p class="page-desc">输入商品信息，AI 自动生成营销视频</p>
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label">商品输入 *</label>
+                    <textarea class="form-textarea" id="input-value" placeholder="输入商品 URL / ID / 描述&#10;例：优雅的夏季碎花连衣裙，轻盈面料，修身剪裁"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">工作流类型</label>
+                        <select class="form-select" id="workflow-type">
+                            <option value="video">完整视频（推荐）</option>
+                            <option value="image">仅图片</option>
+                            <option value="storyboard">仅分镜</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">场景数量</label>
+                        <select class="form-select" id="num-scenes">
+                            <option value="3">3 场景</option>
+                            <option value="4">4 场景</option>
+                            <option value="5">5 场景</option>
+                            <option value="6" selected>6 场景</option>
+                            <option value="8">8 场景</option>
+                            <option value="10">10 场景</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">宽高比</label>
+                        <select class="form-select" id="aspect-ratio">
+                            <option value="9:16" selected>9:16 竖屏（抖音/快手）</option>
+                            <option value="16:9">16:9 横屏（YouTube/B站）</option>
+                            <option value="1:1">1:1 方形（小红书）</option>
+                            <option value="4:3">4:3 传统</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">TTS 音色</label>
+                        <select class="form-select" id="voice">
+                            <option value="xiaoxiao">晓晓（女声·温暖）</option>
+                            <option value="yunxi">云希（男声·活力）</option>
+                            <option value="yunjian">云健（男声·沉稳）</option>
+                            <option value="xiaoyi">晓伊（女声·活泼）</option>
+                            <option value="yunyang">云扬（男声·播报）</option>
+                            <option value="xiaohan">晓涵（女声·抒情）</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btn-create" onclick="createWorkflow()">🚀 开始创作</button>
+            </div>
+            <!-- 进度区 -->
+            <div class="card" id="progress-card" style="display:none">
+                <h3 style="margin-bottom:16px">创作进度</h3>
+                <div class="progress-bar" style="margin-bottom:16px">
+                    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+                </div>
+                <div id="progress-text" style="margin-bottom:16px;color:var(--text-muted)">准备中...</div>
+                <div class="timeline" id="task-timeline"></div>
+            </div>
+            <!-- 结果区 -->
+            <div class="card" id="result-card" style="display:none">
+                <h3 style="margin-bottom:16px">创作结果</h3>
+                <div id="result-content"></div>
+            </div>
+        </div>
+
+        <!-- 创作历史 -->
+        <div id="page-runs" class="page">
+            <h1 class="page-title">创作历史</h1>
+            <p class="page-desc">所有创作运行记录</p>
+            <div class="card">
+                <table class="table">
+                    <thead><tr><th>运行 ID</th><th>类型</th><th>状态</th><th>输入</th><th>操作</th></tr></thead>
+                    <tbody id="runs-table"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">加载中...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 场景模板 -->
+        <div id="page-scenes" class="page">
+            <h1 class="page-title">场景模板</h1>
+            <p class="page-desc">15 个预设场景模板</p>
+            <div class="stats-grid" id="scenes-grid"><div class="empty-state">加载中...</div></div>
+        </div>
+
+        <!-- 系统健康 -->
+        <div id="page-health" class="page">
+            <h1 class="page-title">系统健康</h1>
+            <p class="page-desc">各组件运行状态</p>
+            <div class="card" id="health-card">加载中...</div>
+        </div>
+    </main>
+</div>
+
+<script>
+const API_BASE = window.location.origin.includes('8765') ? '' : 'http://localhost:8765';
+const API = API_BASE + '/';
+
+// 页面切换
+function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'runs') loadRuns();
+    if (name === 'scenes') loadScenes();
+    if (name === 'health') loadHealth();
+}
+
+// Toast
+function toast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// API 调用
+async function api(path, options = {}) {
+    try {
+        const resp = await fetch(API + path, {
+            headers: { 'Content-Type': 'application/json' },
+            ...options,
+        });
+        return await resp.json();
+    } catch (e) {
+        toast('API 调用失败: ' + e.message, 'error');
+        return null;
+    }
+}
+
+// Dashboard
+async function loadDashboard() {
+    const health = await api('health');
+    if (health) {
+        document.getElementById('stat-videos').textContent = '0';
+        document.getElementById('stat-assets').textContent = '0';
+        document.getElementById('stat-success').textContent = '100%';
+        document.getElementById('stat-latency').textContent = '-';
+    }
+    const runs = await api('orchestrate');
+    if (runs && runs.runs) {
+        const container = document.getElementById('recent-runs');
+        if (runs.runs.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div>';
+        } else {
+            container.innerHTML = '<table class="table"><thead><tr><th>运行ID</th><th>类型</th><th>状态</th><th>输入</th></tr></thead><tbody>' +
+                runs.runs.slice(0, 5).map(r => `<tr><td>${r.run_id}</td><td>${r.workflow_type}</td><td><span class="badge badge-${r.status === 'success' ? 'success' : r.status === 'failed' ? 'failed' : 'running'}">${r.status}</span></td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${r.input}</td></tr>`).join('') +
+                '</tbody></table>';
+        }
+    }
+}
+
+// 创建工作流
+async function createWorkflow() {
+    const input = document.getElementById('input-value').value.trim();
+    if (!input) { toast('请输入商品信息', 'error'); return; }
+
+    const body = {
+        input_value: input,
+        workflow: document.getElementById('workflow-type').value,
+        num_scenes: parseInt(document.getElementById('num-scenes').value),
+        aspect_ratio: document.getElementById('aspect-ratio').value,
+        voice: document.getElementById('voice').value,
+    };
+
+    document.getElementById('btn-create').disabled = true;
+    document.getElementById('progress-card').style.display = 'block';
+    document.getElementById('result-card').style.display = 'none';
+
+    toast('工作流已启动');
+    const result = await api('orchestrate/sync', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+
+    document.getElementById('btn-create').disabled = false;
+
+    if (result && result.success) {
+        document.getElementById('progress-fill').style.width = '100%';
+        document.getElementById('progress-text').textContent = '✅ 创作完成！';
+        renderTimeline(result.tasks_summary || []);
+        renderResult(result.artifacts || {});
+        toast('创作完成！');
+    } else {
+        document.getElementById('progress-text').textContent = '❌ 创作失败';
+        toast('创作失败: ' + (result?.error || '未知错误'), 'error');
+    }
+}
+
+function renderTimeline(tasks) {
+    const container = document.getElementById('task-timeline');
+    container.innerHTML = tasks.map(t => `
+        <div class="timeline-item">
+            <div class="timeline-dot ${t.status}"></div>
+            <div class="timeline-title">${t.agent} - ${t.action}</div>
+            <div class="timeline-meta">${t.status}${t.degraded ? ' (降级)' : ''}${t.duration_sec ? ' · ' + t.duration_sec + 's' : ''}</div>
+        </div>
+    `).join('');
+}
+
+function renderResult(artifacts) {
+    const container = document.getElementById('result-content');
+    document.getElementById('result-card').style.display = 'block';
+    let html = '';
+    if (artifacts.video && artifacts.video.output_path) {
+        html += `<p style="margin-bottom:12px"><strong>视频路径:</strong> ${artifacts.video.output_path}</p>`;
+        html += `<p style="margin-bottom:12px"><strong>时长:</strong> ${artifacts.video.duration_sec}s · <strong>分辨率:</strong> ${artifacts.video.resolution || '-'}</p>`;
+    }
+    if (artifacts.creative) {
+        html += `<p style="margin-bottom:8px"><strong>创意主题:</strong> ${artifacts.creative.theme || '-'}</p>`;
+    }
+    if (artifacts.storyboard) {
+        html += `<p><strong>分镜数:</strong> ${artifacts.storyboard.total_shots || '-'}</p>`;
+    }
+    container.innerHTML = html || '<div class="empty-state">无产物</div>';
+}
+
+// 运行列表
+async function loadRuns() {
+    const data = await api('orchestrate');
+    const tbody = document.getElementById('runs-table');
+    if (!data || !data.runs || data.runs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">暂无运行记录</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.runs.map(r => `
+        <tr>
+            <td>${r.run_id}</td>
+            <td>${r.workflow_type}</td>
+            <td><span class="badge badge-${r.status === 'success' ? 'success' : r.status === 'failed' ? 'failed' : 'running'}">${r.status}</span></td>
+            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${r.input}</td>
+            <td><button class="btn btn-secondary" style="padding:4px 12px" onclick="viewRun('${r.run_id}')">查看</button></td>
+        </tr>
+    `).join('');
+}
+
+async function viewRun(runId) {
+    const data = await api('orchestrate/' + runId);
+    if (!data) return;
+    showPage('create');
+    document.getElementById('progress-card').style.display = 'block';
+    document.getElementById('progress-fill').style.width = data.status === 'success' ? '100%' : '50%';
+    document.getElementById('progress-text').textContent = '运行状态: ' + data.status;
+    renderTimeline(data.tasks || []);
+    if (data.final_outputs) renderResult(data.final_outputs.artifacts || {});
+}
+
+// 场景模板
+async function loadScenes() {
+    const data = await api('scenes');
+    const grid = document.getElementById('scenes-grid');
+    if (!data || !data.scenes) { grid.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+    grid.innerHTML = data.scenes.map(s => `
+        <div class="stat-card">
+            <div style="font-size:24px;margin-bottom:8px">${s.emoji || '🎬'}</div>
+            <div style="font-weight:600;margin-bottom:4px">${s.name}</div>
+            <div style="color:var(--text-muted);font-size:13px">${s.description || ''}</div>
+        </div>
+    `).join('');
+}
+
+// 系统健康
+async function loadHealth() {
+    const data = await api('health');
+    const card = document.getElementById('health-card');
+    if (!data) { card.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+    const checks = data.checks || {};
+    card.innerHTML = `
+        <p style="margin-bottom:16px"><strong>整体状态:</strong> <span class="badge badge-${data.status === 'healthy' ? 'success' : 'degraded'}">${data.status}</span></p>
+        <table class="table">
+            <thead><tr><th>组件</th><th>状态</th><th>详情</th></tr></thead>
+            <tbody>
+                ${Object.entries(checks).map(([k, v]) => `
+                    <tr>
+                        <td>${k}</td>
+                        <td><span class="badge badge-${v.healthy ? 'success' : 'failed'}">${v.healthy ? '✅ 正常' : '❌ 异常'}</span></td>
+                        <td style="color:var(--text-muted)">${v.message || ''}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+// 初始化
+loadDashboard();
+</script>
+</body>
+</html>

@@ -146,6 +146,93 @@ iterations:
         title: V4 顶尖升级测试
         status: completed
 
+  - id: V5-6
+    name: 智能化与生态
+    duration: 2周
+    status: completed
+    deliverables:
+      - LLM 智能创意生成
+      - Web 前端界面
+      - 异步任务队列
+      - 对象存储集成
+      - Python SDK
+      - A/B 测试框架
+    success_criteria:
+      - AI 驱动的个性化创意生成
+      - 可视化 Web UI 一键创作
+      - 生产级异步任务处理
+      - 产物云端存储与 CDN 分发
+      - 开发者 SDK 可调用
+    tasks:
+      - id: T6.1
+        title: 更新 autoplan 添加 V5 任务清单
+        status: completed
+      - id: T6.2
+        title: 实现 LLM 智能创意生成
+        status: completed
+      - id: T6.3
+        title: 实现 Web 前端界面
+        status: completed
+      - id: T6.4
+        title: 实现异步任务队列
+        status: completed
+      - id: T6.5
+        title: 实现对象存储集成
+        status: completed
+      - id: T6.6
+        title: 实现 Python SDK
+        status: completed
+      - id: T6.7
+        title: 实现 A/B 测试框架
+        status: completed
+      - id: T6.8
+        title: V5 智能化与生态测试
+        status: completed
+
+  - id: V6-7
+    name: 企业级集成与生态深化
+    duration: 2周
+    status: completed
+    deliverables:
+      - SSO 单点登录与权限矩阵
+      - Webhook 事件订阅系统
+      - JNPF6.2 深度集成（表单引擎+流程引擎+页面渲染）
+      - 复利系统指令集扩展（资产复用+模板继承+组合编排）
+      - 国际化 i18n 多语言支持
+      - CI/CD pipeline 自动化
+    success_criteria:
+      - 企业级 SSO 鉴权与细粒度权限控制
+      - 事件驱动的外部系统集成
+      - JNPF6.2 低代码引擎深度嵌入
+      - 复利资产可继承复用，指令可组合编排
+      - 多语言界面（中/英/日）
+      - 自动化测试与部署流水线
+    tasks:
+      - id: T7.1
+        title: 更新 autoplan 添加 V6 任务清单
+        status: completed
+      - id: T7.2
+        title: 实现 SSO 单点登录与权限矩阵
+        status: completed
+      - id: T7.3
+        title: 实现 Webhook 事件订阅系统
+        status: completed
+      - id: T7.4
+        title: JNPF6.2 深度集成 - 表单引擎+流程引擎+页面渲染
+        status: completed
+      - id: T7.5
+        title: 复利系统指令集扩展 - 资产复用+模板继承+组合编排
+        status: completed
+      - id: T7.6
+        title: 实现国际化 i18n 多语言支持
+        status: completed
+      - id: T7.7
+        title: 实现 CI/CD pipeline 配置
+        status: completed
+      - id: T7.8
+        title: V6 端到端测试
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos
