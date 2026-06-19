@@ -1,6 +1,8 @@
 """
 LLM 智能创意生成 - AI 驱动的个性化营销创意
-支持多 LLM 提供商：OpenAI / Anthropic / 本地模型
+V7 升级：接入多提供商智能路由层（DeepSeek/智谱GLM/火山Ark/Stability）
+支持按用途路由、故障转移、多 Key 轮询、熔断保护
+保留旧接口兼容（OpenAI/Anthropic/Local Provider）
 自动回退到模板生成（保证可用性）
 """
 import json
@@ -22,15 +24,20 @@ _OBS_PATH = Path(__file__).parent.parent.parent / "platform" / "observability"
 if str(_OBS_PATH) not in sys.path:
     sys.path.insert(0, str(_OBS_PATH))
 
+# 添加 llm 路由层路径
+_LLM_PATH = Path(__file__).parent.parent.parent / "platform" / "llm"
+if str(_LLM_PATH) not in sys.path:
+    sys.path.insert(0, str(_LLM_PATH))
+
 from logger import get_logger
 
 logger = get_logger(__name__)
 
 
-# ============ LLM 提供商 ============
+# ============ 旧版 LLM 提供商（保留兼容） ============
 
 class LLMProvider:
-    """LLM 提供商基类"""
+    """LLM 提供商基类（旧版，保留兼容）"""
 
     def __init__(self, model: str, api_key: str = None, base_url: str = None):
         self.model = model
@@ -45,7 +52,7 @@ class LLMProvider:
 
 
 class OpenAIProvider(LLMProvider):
-    """OpenAI / 兼容 API"""
+    """OpenAI / 兼容 API（旧版，保留兼容）"""
 
     def __init__(self, model: str = "gpt-4o-mini", api_key: str = None, base_url: str = None):
         super().__init__(model, api_key or os.environ.get("OPENAI_API_KEY"), base_url or os.environ.get("OPENAI_BASE_URL"))
@@ -75,7 +82,7 @@ class OpenAIProvider(LLMProvider):
 
 
 class AnthropicProvider(LLMProvider):
-    """Anthropic Claude"""
+    """Anthropic Claude（旧版，保留兼容）"""
 
     def __init__(self, model: str = "claude-3-5-haiku-20241022", api_key: str = None):
         super().__init__(model, api_key or os.environ.get("ANTHROPIC_API_KEY"))
@@ -132,6 +139,48 @@ class LocalLLMProvider(LLMProvider):
         resp = requests.post(url, json=payload, timeout=120)
         resp.raise_for_status()
         return resp.json()["message"]["content"]
+
+
+# ============ V7 路由层适配器 ============
+
+class RouterProvider(LLMProvider):
+    """
+    V7 路由层适配器
+    将 LLMRouter 包装为旧版 LLMProvider 接口
+    实现新旧接口兼容
+    """
+
+    def __init__(self, purpose: str = None, preferred_provider: str = None, model: str = None):
+        from router import get_router
+        self.router = get_router()
+        self.purpose = purpose or os.environ.get("KICKART_LLM_DEFAULT_PURPOSE", "aigc_marketing")
+        self.preferred_provider = preferred_provider
+        self.model = model
+        # 旧接口兼容字段
+        self.api_key = "router_managed"
+        self.base_url = "router_managed"
+
+    def is_available(self) -> bool:
+        """检查路由器是否有可用提供商"""
+        status = self.router.get_router_status()
+        return status["available_providers"] > 0
+
+    def generate(self, system_prompt: str, user_prompt: str, temperature: float = 0.8, max_tokens: int = 2000) -> str:
+        """通过路由层生成"""
+        result = self.router.generate(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            purpose=self.purpose,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            model=self.model,
+            preferred_provider=self.preferred_provider,
+        )
+        if result.get("error"):
+            raise RuntimeError(result["error"])
+        # 更新 model 字段为实际使用的模型
+        self.model = result.get("model", self.model)
+        return result["text"]
 
 
 # ============ 提示词工程 ============
@@ -198,19 +247,43 @@ def build_user_prompt(product_info: dict, num_scenes: int = 6, style: str = "vir
 class IntelligentCreativeGenerator:
     """
     AI 智能创意生成器
-    - 优先使用 LLM 生成个性化创意
-    - LLM 不可用时回退到模板生成
-    - 支持多 LLM 提供商
+    V7：优先使用路由层（多提供商），回退到旧版单提供商，最终回退到模板
+    - 优先使用 LLM 路由层生成个性化创意
+    - 路由层不可用时回退到旧版单提供商
+    - 所有 LLM 不可用时回退到模板生成
+    - 支持指定用途和偏好提供商
     """
 
-    def __init__(self, provider: LLMProvider = None):
+    def __init__(self, provider: LLMProvider = None, purpose: str = None, preferred_provider: str = None):
+        """
+        Args:
+            provider: 旧版提供商（兼容）
+            purpose: V7 用途（jnpf_team/cross_border_ecommerce/aigc_marketing）
+            preferred_provider: V7 偏好提供商 ID
+        """
         self.provider = provider
+        self.purpose = purpose
+        self.preferred_provider = preferred_provider
         self._fallback_count = 0
         self._llm_count = 0
+        self._router_used = False
 
     @classmethod
-    def auto_select(cls) -> "IntelligentCreativeGenerator":
-        """自动选择可用的 LLM 提供商"""
+    def auto_select(cls, purpose: str = None, preferred_provider: str = None) -> "IntelligentCreativeGenerator":
+        """
+        自动选择可用的 LLM 提供商
+        V7 优先级：路由层 → 旧版 OpenAI → 旧版 Anthropic → 本地 → 模板
+        """
+        # 1. 优先尝试 V7 路由层
+        try:
+            router_provider = RouterProvider(purpose=purpose, preferred_provider=preferred_provider)
+            if router_provider.is_available():
+                logger.info(f"V7 路由层可用（purpose={purpose or 'default'}）")
+                return cls(provider=router_provider, purpose=purpose, preferred_provider=preferred_provider)
+        except Exception as e:
+            logger.debug(f"V7 路由层不可用: {e}")
+
+        # 2. 回退到旧版提供商
         providers = [
             OpenAIProvider(),
             AnthropicProvider(),
@@ -280,6 +353,10 @@ class IntelligentCreativeGenerator:
         creative["llm_model"] = self.provider.model
         creative["llm_duration_sec"] = round(duration, 2)
         creative["style"] = style
+        # V7 路由层信息
+        if isinstance(self.provider, RouterProvider):
+            creative["router_used"] = True
+            creative["purpose"] = self.provider.purpose
         return creative
 
     def _parse_llm_output(self, raw: str) -> dict:
@@ -318,6 +395,7 @@ class IntelligentCreativeGenerator:
             "llm_generated": self._llm_count,
             "template_fallback": self._fallback_count,
             "llm_ratio": round(self._llm_count / total, 2) if total > 0 else 0,
+            "router_used": isinstance(self.provider, RouterProvider),
         }
 
 
@@ -327,14 +405,17 @@ def generate_multi_style(
     product_info: dict,
     styles: list = None,
     num_scenes: int = 6,
+    purpose: str = None,
 ) -> list[dict]:
     """
     为同一商品生成多种风格的创意（用于 A/B 测试）
+    V7 支持指定用途路由
 
     Args:
         product_info: 商品信息
         styles: 风格列表
         num_scenes: 场景数
+        purpose: V7 用途
 
     Returns:
         多个创意脚本列表
@@ -342,7 +423,7 @@ def generate_multi_style(
     if styles is None:
         styles = ["viral", "elegant", "professional"]
 
-    generator = IntelligentCreativeGenerator.auto_select()
+    generator = IntelligentCreativeGenerator.auto_select(purpose=purpose)
     creatives = []
     for style in styles:
         creative = generator.generate(
@@ -366,6 +447,12 @@ def main():
     parser.add_argument("--style", default="viral", choices=["viral", "elegant", "professional", "emotional", "energetic"])
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--multi-style", action="store_true", help="生成多风格（A/B 测试）")
+    # V7 新增参数
+    parser.add_argument("--purpose", default=None,
+                        choices=["jnpf_team", "cross_border_ecommerce", "aigc_marketing", "default"],
+                        help="V7 业务用途路由")
+    parser.add_argument("--preferred-provider", default=None,
+                        help="V7 偏好提供商 ID")
 
     args = parser.parse_args()
 
@@ -373,12 +460,15 @@ def main():
         product_info = json.load(f)
 
     if args.multi_style:
-        creatives = generate_multi_style(product_info, num_scenes=args.num_scenes)
+        creatives = generate_multi_style(product_info, num_scenes=args.num_scenes, purpose=args.purpose)
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(creatives, f, ensure_ascii=False, indent=2)
         print(f"✅ 生成 {len(creatives)} 个风格创意: {args.output}")
     else:
-        generator = IntelligentCreativeGenerator.auto_select()
+        generator = IntelligentCreativeGenerator.auto_select(
+            purpose=args.purpose,
+            preferred_provider=args.preferred_provider,
+        )
         creative = generator.generate(
             product_info=product_info,
             num_scenes=args.num_scenes,
@@ -391,8 +481,10 @@ def main():
         print(f"   生成方式: {creative.get('generated_by')}")
         print(f"   主题: {creative.get('theme')}")
         print(f"   场景数: {len(creative.get('scenes', []))}")
+        if creative.get("router_used"):
+            print(f"   路由层: 已使用 (purpose={creative.get('purpose')})")
         stats = generator.get_stats()
-        print(f"   统计: LLM {stats['llm_generated']}, 模板 {stats['template_fallback']}")
+        print(f"   统计: LLM {stats['llm_generated']}, 模板 {stats['template_fallback']}, 路由层 {stats['router_used']}")
 
 
 if __name__ == "__main__":

@@ -105,6 +105,15 @@ class Settings(BaseSettings):
     metrics_enabled: bool = Field(default=True, description="是否启用 Prometheus 指标")
     metrics_path: str = Field(default="/metrics", description="指标暴露路径")
 
+    # ============ LLM 多提供商配置 ============
+    llm_strategy: str = Field(default="failover", description="路由策略：failover/round_robin/least_used/random")
+    llm_default_purpose: str = Field(default="aigc_marketing", description="默认用途")
+    llm_breaker_enabled: bool = Field(default=True, description="是否启用熔断器")
+    llm_breaker_threshold: int = Field(default=3, description="熔断阈值（连续失败次数）")
+    llm_breaker_cooldown: int = Field(default=60, description="熔断冷却时间（秒）")
+    llm_default_temperature: float = Field(default=0.8, description="默认温度")
+    llm_default_max_tokens: int = Field(default=2000, description="默认最大 tokens")
+
     class Config:
         env_prefix = "KICKART_"  # 环境变量前缀
         env_file = ".env"

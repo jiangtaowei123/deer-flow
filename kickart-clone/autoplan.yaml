@@ -233,6 +233,38 @@ iterations:
         title: V6 端到端测试
         status: completed
 
+  - id: V7-8
+    name: 多提供商 LLM 路由层
+    duration: 1周
+    status: completed
+    deliverables:
+      - 4 家 LLM 提供商适配器（DeepSeek/智谱GLM/火山Ark/Stability）
+      - 智能路由层（按用途路由+故障转移+多Key轮询+熔断保护）
+      - 7 个 API Key 配置管理（.env + config.py）
+      - llm_creative.py 路由层接入（保留旧接口兼容）
+    success_criteria:
+      - 7 个 API Key 按用途隔离（JNPF团队/跨境电商/AIGC中台/图片生成）
+      - 故障转移：主 Key 失败自动切换备用 Key
+      - 熔断保护：连续失败自动熔断，冷却后半开试探
+      - 用量统计：按提供商/用途/模型维度统计
+      - 新旧接口兼容：RouterProvider 包装为旧版 LLMProvider
+    tasks:
+      - id: T8.1
+        title: 创建 providers.py - 4 家提供商适配器
+        status: completed
+      - id: T8.2
+        title: 创建 router.py - 智能路由层
+        status: completed
+      - id: T8.3
+        title: 更新 .env.example 和 config.py
+        status: completed
+      - id: T8.4
+        title: 改造 llm_creative.py 接入路由层
+        status: completed
+      - id: T8.5
+        title: V7 多提供商路由层测试
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos
