@@ -265,6 +265,47 @@ iterations:
         title: V7 多提供商路由层测试
         status: completed
 
+  - id: V8-9
+    name: 商用级完整闭环
+    duration: 1周
+    status: completed
+    deliverables:
+      - 后端平台 API 路由模块（platform_routes.py - ~50 个端点覆盖 12 个模块）
+      - 前端 15 页面完整重写（创作/AI能力/平台/低代码/运维 5 大分组）
+      - 同名 manager.py 模块冲突修复（importlib 显式加载）
+      - 端到端闭环测试（48 项测试全部通过）
+    success_criteria:
+      - 12 个平台模块全部有 HTTP API 端点支撑
+      - 前端 15 个页面所有按钮都有后端 API 对接
+      - 创建→查询→删除 完整闭环（租户/用户/Webhook/复利模板/AB测试）
+      - LLM 路由端到端可用（mock 验证）
+      - JNPF 表单引擎 + 流程引擎闭环
+      - 监控告警闭环（健康/仪表盘/告警/规则/指标）
+      - i18n 多语言切换闭环（中/英/日）
+      - 前后端 API 映射 100% 闭环
+    tasks:
+      - id: T9.1
+        title: 全面审查现有模块完整性
+        status: completed
+      - id: T9.2
+        title: 审查 Web 前端页面
+        status: completed
+      - id: T9.3
+        title: 创建后端 API 路由模块（platform_routes.py）
+        status: completed
+      - id: T9.4
+        title: 补全 SSO/Webhook/i18n/LLM 路由的 API 端点
+        status: completed
+      - id: T9.5
+        title: 重写 Web 前端 - 补全所有页面和交互闭环
+        status: completed
+      - id: T9.6
+        title: 编写并运行端到端闭环测试（48/48 通过）
+        status: completed
+      - id: T9.7
+        title: 修复测试发现的问题并最终验证
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos

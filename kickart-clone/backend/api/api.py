@@ -12,20 +12,24 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 # 添加项目路径
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "skills" / "product-parse" / "scripts"))
 sys.path.insert(0, str("/workspace/skills/public/amazon-product-image/scripts"))
+sys.path.insert(0, str(PROJECT_ROOT / "backend" / "api"))
 
 from parse import ProductParser
 from generate import StableDiffusionBatchGenerator
+from platform_routes import router as platform_router
 
 app = FastAPI(
     title="Kickart Clone API",
-    description="一站式营销创作平台 - 商品解析 + 批量图像生成",
-    version="0.1.0",
+    description="一站式营销创作平台 - 商品解析 + 批量图像生成 + 多 Agent 编排 + 平台能力",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -35,6 +39,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 挂载平台路由（V3-V7 所有模块）
+app.include_router(platform_router)
+
+# 静态文件服务（前端）
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 # 任务存储（生产环境应使用数据库）
 TASKS_DB = {}
@@ -386,6 +398,15 @@ async def list_orchestrations():
 # ============================================================================
 # 启动入口
 # ============================================================================
+
+@app.get("/")
+async def index():
+    """前端首页"""
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"message": "Kickart Clone API", "version": "2.0.0", "docs": "/docs"}
+
 
 if __name__ == "__main__":
     import uvicorn

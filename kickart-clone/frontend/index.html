@@ -7,457 +7,535 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --border: #334155;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
+            --primary: #6366f1; --primary-dark: #4f46e5;
+            --bg: #0f172a; --card: #1e293b; --border: #334155;
+            --text: #f1f5f9; --text-muted: #94a3b8;
+            --success: #10b981; --warning: #f59e0b; --error: #ef4444;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         .layout { display: flex; min-height: 100vh; }
-        /* 侧边栏 */
-        .sidebar {
-            width: 240px;
-            background: var(--card);
-            border-right: 1px solid var(--border);
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
+        .sidebar { width: 240px; background: var(--card); border-right: 1px solid var(--border); padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
         .logo { padding: 0 24px 24px; font-size: 20px; font-weight: 700; color: var(--primary); }
-        .nav-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 24px; cursor: pointer; color: var(--text-muted);
-            transition: all 0.2s;
-        }
+        .nav-section { padding: 8px 24px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 16px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 24px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; font-size: 14px; }
         .nav-item:hover { background: rgba(99,102,241,0.1); color: var(--text); }
         .nav-item.active { background: rgba(99,102,241,0.15); color: var(--primary); border-right: 3px solid var(--primary); }
-        .nav-icon { font-size: 18px; width: 20px; text-align: center; }
-        /* 主内容 */
-        .main { flex: 1; margin-left: 240px; padding: 32px; }
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+        .main { flex: 1; margin-left: 240px; padding: 32px; max-width: calc(100% - 240px); }
         .page { display: none; }
         .page.active { display: block; }
         .page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .page-desc { color: var(--text-muted); margin-bottom: 32px; }
-        /* 卡片 */
-        .card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 12px; padding: 24px; margin-bottom: 20px;
-        }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 12px; padding: 20px;
-        }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .stat-label { color: var(--text-muted); font-size: 13px; margin-bottom: 8px; }
         .stat-value { font-size: 32px; font-weight: 700; }
-        .stat-value.success { color: var(--success); }
-        .stat-value.warning { color: var(--warning); }
-        /* 表单 */
+        .stat-value.success { color: var(--success); } .stat-value.warning { color: var(--warning); } .stat-value.error { color: var(--error); }
         .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .form-input, .form-select, .form-textarea {
-            width: 100%; padding: 12px 16px; background: var(--bg);
-            border: 1px solid var(--border); border-radius: 8px;
-            color: var(--text); font-size: 14px; transition: border 0.2s;
-        }
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none; border-color: var(--primary);
-        }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; transition: border 0.2s; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary); }
         .form-textarea { min-height: 100px; resize: vertical; font-family: inherit; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        /* 按钮 */
-        .btn {
-            padding: 12px 24px; border: none; border-radius: 8px;
-            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-secondary { background: var(--border); color: var(--text); }
         .btn-secondary:hover { background: #475569; }
-        /* 表格 */
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-danger { background: var(--error); color: white; }
         .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
         .table th { color: var(--text-muted); font-size: 13px; font-weight: 600; }
-        /* 状态徽章 */
-        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-block; }
         .badge-success { background: rgba(16,185,129,0.15); color: var(--success); }
         .badge-running { background: rgba(99,102,241,0.15); color: var(--primary); }
         .badge-failed { background: rgba(239,68,68,0.15); color: var(--error); }
         .badge-degraded { background: rgba(245,158,11,0.15); color: var(--warning); }
-        /* 进度条 */
+        .badge-muted { background: rgba(148,163,184,0.15); color: var(--text-muted); }
         .progress-bar { width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
-        /* 任务时间线 */
         .timeline { position: relative; padding-left: 32px; }
         .timeline::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; background: var(--border); }
         .timeline-item { position: relative; padding-bottom: 24px; }
         .timeline-dot { position: absolute; left: -28px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); }
-        .timeline-dot.success { background: var(--success); }
-        .timeline-dot.running { background: var(--primary); animation: pulse 1.5s infinite; }
-        .timeline-dot.failed { background: var(--error); }
-        .timeline-dot.degraded { background: var(--warning); }
+        .timeline-dot.success { background: var(--success); } .timeline-dot.running { background: var(--primary); animation: pulse 1.5s infinite; }
+        .timeline-dot.failed { background: var(--error); } .timeline-dot.degraded { background: var(--warning); }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         .timeline-title { font-weight: 600; margin-bottom: 4px; }
         .timeline-meta { color: var(--text-muted); font-size: 13px; }
-        /* Toast */
-        .toast {
-            position: fixed; top: 24px; right: 24px; padding: 16px 24px;
-            background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-        .toast.success { border-color: var(--success); }
-        .toast.error { border-color: var(--error); }
+        .toast { position: fixed; top: 24px; right: 24px; padding: 16px 24px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000; animation: slideIn 0.3s ease; max-width: 400px; }
+        .toast.success { border-color: var(--success); } .toast.error { border-color: var(--error); }
         @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
-        /* 视频预览 */
-        .video-preview { width: 100%; max-width: 360px; border-radius: 12px; }
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
         .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .json-view { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .tab { padding: 10px 20px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; font-size: 14px; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .user-bar { position: fixed; top: 16px; right: 24px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+        .lang-switch { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+        .lang-btn { padding: 4px 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 12px; }
+        .lang-btn.active { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
 <div class="layout">
-    <!-- 侧边栏 -->
     <aside class="sidebar">
         <div class="logo">🎬 Kickart</div>
-        <div class="nav-item active" onclick="showPage('dashboard')">
-            <span class="nav-icon">📊</span> 工作台
-        </div>
-        <div class="nav-item" onclick="showPage('create')">
-            <span class="nav-icon">✨</span> 新建创作
-        </div>
-        <div class="nav-item" onclick="showPage('runs')">
-            <span class="nav-icon">📋</span> 创作历史
-        </div>
-        <div class="nav-item" onclick="showPage('scenes')">
-            <span class="nav-icon">🎭</span> 场景模板
-        </div>
-        <div class="nav-item" onclick="showPage('health')">
-            <span class="nav-icon">💚</span> 系统健康
-        </div>
+        <div class="nav-section">创作</div>
+        <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="nav-icon">📊</span> 工作台</div>
+        <div class="nav-item" onclick="showPage('create', this)"><span class="nav-icon">✨</span> 新建创作</div>
+        <div class="nav-item" onclick="showPage('runs', this)"><span class="nav-icon">📋</span> 创作历史</div>
+        <div class="nav-item" onclick="showPage('scenes', this)"><span class="nav-icon">🎭</span> 场景模板</div>
+        <div class="nav-section">AI 能力</div>
+        <div class="nav-item" onclick="showPage('llm', this)"><span class="nav-icon">🧠</span> LLM 路由</div>
+        <div class="nav-item" onclick="showPage('abtest', this)"><span class="nav-icon">🅰️</span> A/B 测试</div>
+        <div class="nav-section">平台</div>
+        <div class="nav-item" onclick="showPage('auth', this)"><span class="nav-icon">🔐</span> 认证管理</div>
+        <div class="nav-item" onclick="showPage('webhooks', this)"><span class="nav-icon">🔗</span> Webhook</div>
+        <div class="nav-item" onclick="showPage('tenants', this)"><span class="nav-icon">🏢</span> 租户管理</div>
+        <div class="nav-item" onclick="showPage('storage', this)"><span class="nav-icon">📦</span> 对象存储</div>
+        <div class="nav-item" onclick="showPage('queue', this)"><span class="nav-icon">⚙️</span> 任务队列</div>
+        <div class="nav-section">低代码</div>
+        <div class="nav-item" onclick="showPage('jnpf', this)"><span class="nav-icon">📋</span> JNPF 表单</div>
+        <div class="nav-item" onclick="showPage('compound', this)"><span class="nav-icon">♻️</span> 复利系统</div>
+        <div class="nav-section">运维</div>
+        <div class="nav-item" onclick="showPage('health', this)"><span class="nav-icon">💚</span> 系统健康</div>
+        <div class="nav-item" onclick="showPage('monitoring', this)"><span class="nav-icon">📈</span> 监控告警</div>
     </aside>
 
-    <!-- 主内容 -->
+    <div class="user-bar">
+        <div class="lang-switch">
+            <button class="lang-btn active" onclick="setLang('zh-CN')">中</button>
+            <button class="lang-btn" onclick="setLang('en-US')">EN</button>
+            <button class="lang-btn" onclick="setLang('ja-JP')">日</button>
+        </div>
+        <div class="user-avatar" id="user-avatar" onclick="showPage('auth', document.querySelectorAll('.nav-item')[7])">G</div>
+    </div>
+
     <main class="main">
-        <!-- Dashboard -->
+        <!-- ========== 工作台 ========== -->
         <div id="page-dashboard" class="page active">
             <h1 class="page-title">工作台</h1>
             <p class="page-desc">一站式营销创作平台总览</p>
-            <div class="stats-grid" id="stats-grid">
+            <div class="stats-grid">
                 <div class="stat-card"><div class="stat-label">日成片数</div><div class="stat-value" id="stat-videos">-</div></div>
                 <div class="stat-card"><div class="stat-label">日素材数</div><div class="stat-value" id="stat-assets">-</div></div>
                 <div class="stat-card"><div class="stat-label">Agent 成功率</div><div class="stat-value success" id="stat-success">-</div></div>
-                <div class="stat-card"><div class="stat-label">端到端耗时</div><div class="stat-value warning" id="stat-latency">-</div></div>
+                <div class="stat-card"><div class="stat-label">LLM 可用</div><div class="stat-value" id="stat-llm">-</div></div>
             </div>
-            <div class="card">
-                <h3 style="margin-bottom:16px">最近运行</h3>
-                <div id="recent-runs"><div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div></div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">最近运行</h3>
+                    <div id="recent-runs"><div class="empty-state"><div class="empty-icon">📋</div>加载中...</div></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">LLM 路由状态</h3>
+                    <div id="llm-status-mini"><div class="empty-state">加载中...</div></div>
+                </div>
             </div>
         </div>
 
-        <!-- 新建创作 -->
+        <!-- ========== 新建创作 ========== -->
         <div id="page-create" class="page">
             <h1 class="page-title">新建创作</h1>
             <p class="page-desc">输入商品信息，AI 自动生成营销视频</p>
             <div class="card">
                 <div class="form-group">
                     <label class="form-label">商品输入 *</label>
-                    <textarea class="form-textarea" id="input-value" placeholder="输入商品 URL / ID / 描述&#10;例：优雅的夏季碎花连衣裙，轻盈面料，修身剪裁"></textarea>
+                    <textarea class="form-textarea" id="input-value" placeholder="输入商品 URL / ID / 描述"></textarea>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">工作流类型</label>
-                        <select class="form-select" id="workflow-type">
-                            <option value="video">完整视频（推荐）</option>
-                            <option value="image">仅图片</option>
-                            <option value="storyboard">仅分镜</option>
-                        </select>
+                        <select class="form-select" id="workflow-type"><option value="video">完整视频</option><option value="image">仅图片</option><option value="storyboard">仅分镜</option></select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">场景数量</label>
-                        <select class="form-select" id="num-scenes">
-                            <option value="3">3 场景</option>
-                            <option value="4">4 场景</option>
-                            <option value="5">5 场景</option>
-                            <option value="6" selected>6 场景</option>
-                            <option value="8">8 场景</option>
-                            <option value="10">10 场景</option>
-                        </select>
+                        <select class="form-select" id="num-scenes"><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6" selected>6</option><option value="8">8</option><option value="10">10</option></select>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">宽高比</label>
-                        <select class="form-select" id="aspect-ratio">
-                            <option value="9:16" selected>9:16 竖屏（抖音/快手）</option>
-                            <option value="16:9">16:9 横屏（YouTube/B站）</option>
-                            <option value="1:1">1:1 方形（小红书）</option>
-                            <option value="4:3">4:3 传统</option>
-                        </select>
+                        <select class="form-select" id="aspect-ratio"><option value="9:16" selected>9:16 竖屏</option><option value="16:9">16:9 横屏</option><option value="1:1">1:1 方形</option><option value="4:3">4:3</option></select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">TTS 音色</label>
-                        <select class="form-select" id="voice">
-                            <option value="xiaoxiao">晓晓（女声·温暖）</option>
-                            <option value="yunxi">云希（男声·活力）</option>
-                            <option value="yunjian">云健（男声·沉稳）</option>
-                            <option value="xiaoyi">晓伊（女声·活泼）</option>
-                            <option value="yunyang">云扬（男声·播报）</option>
-                            <option value="xiaohan">晓涵（女声·抒情）</option>
-                        </select>
+                        <select class="form-select" id="voice"><option value="xiaoxiao">晓晓</option><option value="yunxi">云希</option><option value="yunjian">云健</option><option value="xiaoyi">晓伊</option><option value="yunyang">云扬</option><option value="xiaohan">晓涵</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">LLM 用途路由</label>
+                        <select class="form-select" id="llm-purpose"><option value="aigc_marketing">AIGC数字营销中台</option><option value="jnpf_team">JNPF团队</option><option value="cross_border_ecommerce">跨境电商</option><option value="default">默认</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">创意风格</label>
+                        <select class="form-select" id="creative-style"><option value="viral">爆款病毒式</option><option value="elegant">优雅品质</option><option value="professional">专业测评</option><option value="emotional">情感共鸣</option><option value="energetic">活力青春</option></select>
                     </div>
                 </div>
                 <button class="btn btn-primary" id="btn-create" onclick="createWorkflow()">🚀 开始创作</button>
             </div>
-            <!-- 进度区 -->
             <div class="card" id="progress-card" style="display:none">
                 <h3 style="margin-bottom:16px">创作进度</h3>
-                <div class="progress-bar" style="margin-bottom:16px">
-                    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-                </div>
+                <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
                 <div id="progress-text" style="margin-bottom:16px;color:var(--text-muted)">准备中...</div>
                 <div class="timeline" id="task-timeline"></div>
             </div>
-            <!-- 结果区 -->
             <div class="card" id="result-card" style="display:none">
                 <h3 style="margin-bottom:16px">创作结果</h3>
                 <div id="result-content"></div>
             </div>
         </div>
 
-        <!-- 创作历史 -->
+        <!-- ========== 创作历史 ========== -->
         <div id="page-runs" class="page">
             <h1 class="page-title">创作历史</h1>
             <p class="page-desc">所有创作运行记录</p>
             <div class="card">
-                <table class="table">
-                    <thead><tr><th>运行 ID</th><th>类型</th><th>状态</th><th>输入</th><th>操作</th></tr></thead>
-                    <tbody id="runs-table"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">加载中...</td></tr></tbody>
-                </table>
+                <table class="table"><thead><tr><th>运行 ID</th><th>类型</th><th>状态</th><th>输入</th><th>操作</th></tr></thead>
+                <tbody id="runs-table"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">加载中...</td></tr></tbody></table>
             </div>
         </div>
 
-        <!-- 场景模板 -->
+        <!-- ========== 场景模板 ========== -->
         <div id="page-scenes" class="page">
             <h1 class="page-title">场景模板</h1>
-            <p class="page-desc">15 个预设场景模板</p>
+            <p class="page-desc">预设场景模板库</p>
             <div class="stats-grid" id="scenes-grid"><div class="empty-state">加载中...</div></div>
         </div>
 
-        <!-- 系统健康 -->
+        <!-- ========== LLM 路由 ========== -->
+        <div id="page-llm" class="page">
+            <h1 class="page-title">LLM 智能路由</h1>
+            <p class="page-desc">多提供商 LLM 路由层（DeepSeek / 智谱 GLM / 火山 Ark / Stability）</p>
+            <div class="stats-grid" id="llm-stats-grid"></div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">提供商状态</h3>
+                    <div id="llm-providers-list"><div class="empty-state">加载中...</div></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">在线测试</h3>
+                    <div class="form-group"><label class="form-label">用途</label>
+                        <select class="form-select" id="llm-test-purpose"><option value="aigc_marketing">AIGC中台</option><option value="jnpf_team">JNPF团队</option><option value="cross_border_ecommerce">跨境电商</option><option value="default">默认</option></select>
+                    </div>
+                    <div class="form-group"><label class="form-label">提示词</label>
+                        <textarea class="form-textarea" id="llm-test-prompt" style="min-height:60px">写一句营销文案</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="llmTestGenerate()">生成</button>
+                    <div id="llm-test-result" style="margin-top:16px"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>用量统计</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="loadLlmUsage()">刷新</button>
+                </div>
+                <div id="llm-usage"><div class="empty-state">点击刷新加载</div></div>
+            </div>
+        </div>
+
+        <!-- ========== A/B 测试 ========== -->
+        <div id="page-abtest" class="page">
+            <h1 class="page-title">A/B 测试</h1>
+            <p class="page-desc">多变体实验与统计分析</p>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>实验列表</h3>
+                    <button class="btn btn-primary btn-sm" onclick="showAbtestCreate()">+ 新建实验</button>
+                </div>
+                <div id="abtest-list"><div class="empty-state">加载中...</div></div>
+            </div>
+            <div class="card" id="abtest-detail" style="display:none">
+                <h3 style="margin-bottom:16px">实验详情</h3>
+                <div id="abtest-detail-content"></div>
+            </div>
+        </div>
+
+        <!-- ========== 认证管理 ========== -->
+        <div id="page-auth" class="page">
+            <h1 class="page-title">认证管理</h1>
+            <p class="page-desc">SSO 单点登录与权限矩阵</p>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">登录</h3>
+                    <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="login-username" placeholder="输入用户名"></div>
+                    <button class="btn btn-primary" onclick="doLogin()">登录</button>
+                    <div id="login-result" style="margin-top:16px"></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">创建用户</h3>
+                    <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="new-username"></div>
+                    <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="new-email"></div>
+                    <div class="form-group"><label class="form-label">租户 ID</label><input class="form-input" id="new-tenant" value="default"></div>
+                    <div class="form-group"><label class="form-label">角色</label>
+                        <select class="form-select" id="new-role"><option value="viewer">viewer</option><option value="creator">creator</option><option value="manager">manager</option><option value="admin">admin</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="createUser()">创建</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:16px">用户列表</h3>
+                <div id="auth-users-list"><div class="empty-state">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- ========== Webhook ========== -->
+        <div id="page-webhooks" class="page">
+            <h1 class="page-title">Webhook 事件订阅</h1>
+            <p class="page-desc">事件驱动的外部系统集成</p>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">创建订阅</h3>
+                    <div class="form-group"><label class="form-label">租户 ID</label><input class="form-input" id="wh-tenant" value="default"></div>
+                    <div class="form-group"><label class="form-label">回调 URL</label><input class="form-input" id="wh-url" placeholder="https://..."></div>
+                    <div class="form-group"><label class="form-label">事件（逗号分隔）</label><input class="form-input" id="wh-events" value="workflow.completed,workflow.failed"></div>
+                    <button class="btn btn-primary" onclick="createWebhook()">订阅</button>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">发布事件</h3>
+                    <div class="form-group"><label class="form-label">事件类型</label>
+                        <select class="form-select" id="wh-publish-event"><option value="workflow.completed">workflow.completed</option><option value="workflow.failed">workflow.failed</option><option value="asset.created">asset.created</option><option value="system.alert">system.alert</option></select>
+                    </div>
+                    <div class="form-group"><label class="form-label">Payload (JSON)</label><textarea class="form-textarea" id="wh-payload" style="min-height:60px">{"message":"test"}</textarea></div>
+                    <button class="btn btn-primary" onclick="publishWebhook()">发布</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:16px">订阅列表</h3>
+                <div id="wh-list"><div class="empty-state">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- ========== 租户管理 ========== -->
+        <div id="page-tenants" class="page">
+            <h1 class="page-title">租户管理</h1>
+            <p class="page-desc">多租户资源隔离与配额控制</p>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>租户列表</h3>
+                    <button class="btn btn-primary btn-sm" onclick="showTenantCreate()">+ 新建租户</button>
+                </div>
+                <div id="tenant-list"><div class="empty-state">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- ========== 对象存储 ========== -->
+        <div id="page-storage" class="page">
+            <h1 class="page-title">对象存储</h1>
+            <p class="page-desc">统一对象存储管理（本地 / S3 / OSS）</p>
+            <div class="stats-grid" id="storage-stats-grid"></div>
+            <div class="card">
+                <h3 style="margin-bottom:16px">对象列表</h3>
+                <div id="storage-objects"><div class="empty-state">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- ========== 任务队列 ========== -->
+        <div id="page-queue" class="page">
+            <h1 class="page-title">任务队列</h1>
+            <p class="page-desc">异步任务队列管理</p>
+            <div class="stats-grid" id="queue-stats-grid"></div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>任务列表</h3>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-secondary btn-sm" onclick="startWorkers(2)">启动 Worker</button>
+                        <button class="btn btn-secondary btn-sm" onclick="stopWorkers()">停止 Worker</button>
+                        <button class="btn btn-secondary btn-sm" onclick="loadQueueTasks()">刷新</button>
+                    </div>
+                </div>
+                <div id="queue-task-list"><div class="empty-state">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- ========== JNPF 表单 ========== -->
+        <div id="page-jnpf" class="page">
+            <h1 class="page-title">JNPF 低代码表单</h1>
+            <p class="page-desc">表单引擎 + 流程引擎 + 页面渲染</p>
+            <div class="tab-bar">
+                <div class="tab active" onclick="switchJnpfTab('form', this)">表单引擎</div>
+                <div class="tab" onclick="switchJnpfTab('flow', this)">流程引擎</div>
+            </div>
+            <div id="jnpf-tab-form">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">表单 Schema</h3>
+                    <div id="jnpf-form-schema"><div class="empty-state">加载中...</div></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">表单校验测试</h3>
+                    <div class="form-group"><label class="form-label">商品输入</label><input class="form-input" id="jnpf-validate-input" value="测试商品"></div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">工作流</label><select class="form-select" id="jnpf-validate-wf"><option value="video">video</option><option value="image">image</option><option value="storyboard">storyboard</option></select></div>
+                        <div class="form-group"><label class="form-label">场景数</label><input class="form-input" id="jnpf-validate-scenes" type="number" value="6"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="jnpfValidateForm()">校验</button>
+                    <button class="btn btn-secondary" onclick="jnpfEvalRules()">评估联动</button>
+                    <div id="jnpf-validate-result" style="margin-top:16px"></div>
+                </div>
+            </div>
+            <div id="jnpf-tab-flow" style="display:none">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">流程定义</h3>
+                    <div id="jnpf-flow-def"><div class="empty-state">加载中...</div></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">运行流程</h3>
+                    <div class="form-group"><label class="form-label">上下文 (JSON)</label><textarea class="form-textarea" id="jnpf-flow-ctx">{"workflow":"video"}</textarea></div>
+                    <button class="btn btn-primary" onclick="jnpfRunFlow()">运行</button>
+                    <div id="jnpf-flow-result" style="margin-top:16px"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 复利系统 ========== -->
+        <div id="page-compound" class="page">
+            <h1 class="page-title">复利系统</h1>
+            <p class="page-desc">资产模板继承 + 版本管理 + 组合编排</p>
+            <div class="tab-bar">
+                <div class="tab active" onclick="switchCompoundTab('templates', this)">模板</div>
+                <div class="tab" onclick="switchCompoundTab('versions', this)">版本</div>
+                <div class="tab" onclick="switchCompoundTab('compose', this)">编排</div>
+            </div>
+            <div id="compound-tab-templates">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">资产模板</h3>
+                    <div id="compound-templates"><div class="empty-state">加载中...</div></div>
+                </div>
+            </div>
+            <div id="compound-tab-versions" style="display:none">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">版本管理</h3>
+                    <div class="form-group"><label class="form-label">资产 ID</label><input class="form-input" id="compound-ver-asset" value="asset_001"></div>
+                    <button class="btn btn-primary" onclick="loadVersions()">查询版本</button>
+                    <div id="compound-versions-list" style="margin-top:16px"></div>
+                </div>
+            </div>
+            <div id="compound-tab-compose" style="display:none">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">管道编排</h3>
+                    <button class="btn btn-primary" onclick="compoundPipeline()">执行示例管道</button>
+                    <div id="compound-compose-result" style="margin-top:16px"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 系统健康 ========== -->
         <div id="page-health" class="page">
             <h1 class="page-title">系统健康</h1>
             <p class="page-desc">各组件运行状态</p>
             <div class="card" id="health-card">加载中...</div>
         </div>
+
+        <!-- ========== 监控告警 ========== -->
+        <div id="page-monitoring" class="page">
+            <h1 class="page-title">监控告警</h1>
+            <p class="page-desc">指标采集与告警管理</p>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom:16px">活跃告警</h3>
+                    <div id="monitoring-alerts"><div class="empty-state">加载中...</div></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">告警规则</h3>
+                    <div id="monitoring-rules"><div class="empty-state">加载中...</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:16px">监控仪表盘</h3>
+                <div id="monitoring-dashboard"><div class="empty-state">加载中...</div></div>
+            </div>
+        </div>
     </main>
 </div>
 
 <script>
-const API_BASE = window.location.origin.includes('8765') ? '' : 'http://localhost:8765';
-const API = API_BASE + '/';
+const API = window.location.origin.includes('8765') ? '/' : 'http://localhost:8765/';
 
-// 页面切换
-function showPage(name) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    event.currentTarget.classList.add('active');
-    if (name === 'dashboard') loadDashboard();
-    if (name === 'runs') loadRuns();
-    if (name === 'scenes') loadScenes();
-    if (name === 'health') loadHealth();
+// ===== 通用 =====
+function toast(msg, type='success'){const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+async function api(path, options={}){try{const resp=await fetch(API+path,{headers:{'Content-Type':'application/json'},...options});if(!resp.ok){const e=await resp.json().catch(()=>({detail:resp.statusText}));throw new Error(e.detail||'API错误');}return await resp.json();}catch(e){toast('API: '+e.message,'error');return null;}}
+function showPage(name, el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(el)el.classList.add('active');
+if(name==='dashboard')loadDashboard();if(name==='runs')loadRuns();if(name==='scenes')loadScenes();if(name==='health')loadHealth();
+if(name==='llm')loadLlmPage();if(name==='abtest')loadAbtest();if(name==='auth')loadAuthUsers();
+if(name==='webhooks')loadWebhooks();if(name==='tenants')loadTenants();if(name==='storage')loadStorage();
+if(name==='queue')loadQueuePage();if(name==='jnpf')loadJnpfForm();if(name==='compound')loadCompoundTemplates();
+if(name==='monitoring')loadMonitoring();}
+function jsonView(obj){return '<div class="json-view">'+JSON.stringify(obj,null,2)+'</div>';}
+function setLang(lang){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');api('api/i18n/language',{method:'PUT',body:JSON.stringify({lang})}).then(()=>toast('语言已切换: '+lang));}
+
+// ===== Dashboard =====
+async function loadDashboard(){
+    const health=await api('health');const llmStatus=await api('api/llm/status');
+    if(health){document.getElementById('stat-videos').textContent='0';document.getElementById('stat-assets').textContent='0';document.getElementById('stat-success').textContent='100%';}
+    if(llmStatus){document.getElementById('stat-llm').textContent=llmStatus.available_providers+'/'+llmStatus.total_providers;
+        document.getElementById('llm-status-mini').innerHTML='<p><strong>策略:</strong> '+llmStatus.strategy+'</p><p><strong>可用:</strong> '+llmStatus.available_providers+'/'+llmStatus.total_providers+'</p><p><strong>熔断:</strong> '+llmStatus.broken_providers+'</p>';}
+    const runs=await api('orchestrate');
+    if(runs&&runs.runs){const c=document.getElementById('recent-runs');if(runs.runs.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div>';}else{c.innerHTML='<table class="table"><tbody>'+runs.runs.slice(0,5).map(r=>'<tr><td>'+r.run_id+'</td><td>'+r.workflow_type+'</td><td><span class="badge badge-'+(r.status==='success'?'success':r.status==='failed'?'failed':'running')+'">'+r.status+'</span></td></tr>').join('')+'</tbody></table>';}}
 }
+// ===== 创作历史 =====
+async function loadRuns(){const data=await api('orchestrate');const tbody=document.getElementById('runs-table');if(!data||!data.runs||data.runs.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">暂无记录</td></tr>';return;}tbody.innerHTML=data.runs.map(r=>'<tr><td>'+r.run_id+'</td><td>'+r.workflow_type+'</td><td><span class="badge badge-'+(r.status==='success'?'success':r.status==='failed'?'failed':'running')+'">'+r.status+'</span></td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">'+r.input+'</td><td><button class="btn btn-secondary btn-sm" onclick="viewRun(\''+r.run_id+'\')">查看</button></td></tr>').join('');}
+async function viewRun(runId){const data=await api('orchestrate/'+runId);if(!data)return;showPage('create',document.querySelectorAll('.nav-item')[1]);document.getElementById('progress-card').style.display='block';document.getElementById('progress-fill').style.width=data.status==='success'?'100%':'50%';document.getElementById('progress-text').textContent='状态: '+data.status;if(data.tasks)renderTimeline(data.tasks);}
+// ===== 创建工作流 =====
+async function createWorkflow(){const input=document.getElementById('input-value').value.trim();if(!input){toast('请输入商品信息','error');return;}const body={input_value:input,workflow:document.getElementById('workflow-type').value,num_scenes:parseInt(document.getElementById('num-scenes').value),aspect_ratio:document.getElementById('aspect-ratio').value,voice:document.getElementById('voice').value};document.getElementById('btn-create').disabled=true;document.getElementById('progress-card').style.display='block';document.getElementById('result-card').style.display='none';toast('工作流已启动');const result=await api('orchestrate/sync',{method:'POST',body:JSON.stringify(body)});document.getElementById('btn-create').disabled=false;if(result&&result.success){document.getElementById('progress-fill').style.width='100%';document.getElementById('progress-text').textContent='✅ 完成！';if(result.tasks_summary)renderTimeline(result.tasks_summary);if(result.artifacts)renderResult(result.artifacts);toast('创作完成！');}else{document.getElementById('progress-text').textContent='❌ 失败';toast('创作失败','error');}}
+function renderTimeline(tasks){document.getElementById('task-timeline').innerHTML=tasks.map(t=>'<div class="timeline-item"><div class="timeline-dot '+(t.status||'')+'"></div><div class="timeline-title">'+(t.agent||t.action||'')+'</div><div class="timeline-meta">'+(t.status||'')+'</div></div>').join('');}
+function renderResult(artifacts){document.getElementById('result-card').style.display='block';let html='';if(artifacts.video)html+='<p><strong>视频:</strong> '+artifacts.video.output_path+'</p>';if(artifacts.creative)html+='<p><strong>主题:</strong> '+artifacts.creative.theme+'</p>';document.getElementById('result-content').innerHTML=html||'<div class="empty-state">无产物</div>';}
+// ===== 场景模板 =====
+async function loadScenes(){const data=await api('scenes');const grid=document.getElementById('scenes-grid');if(!data||!data.scenes){grid.innerHTML='<div class="empty-state">加载失败</div>';return;}grid.innerHTML=data.scenes.map(s=>'<div class="stat-card"><div style="font-size:24px;margin-bottom:8px">🎬</div><div style="font-weight:600;margin-bottom:4px">'+s.name+'</div><div style="color:var(--text-muted);font-size:13px">'+(s.description||'')+'</div></div>').join('');}
+// ===== 系统健康 =====
+async function loadHealth(){const data=await api('health');const card=document.getElementById('health-card');if(!data){card.innerHTML='<div class="empty-state">加载失败</div>';return;}card.innerHTML='<p style="margin-bottom:16px"><strong>状态:</strong> <span class="badge badge-success">'+data.status+'</span></p><p>服务: '+data.service+' v'+data.version+'</p>';}
 
-// Toast
-function toast(msg, type = 'success') {
-    const t = document.createElement('div');
-    t.className = 'toast ' + type;
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
-}
-
-// API 调用
-async function api(path, options = {}) {
-    try {
-        const resp = await fetch(API + path, {
-            headers: { 'Content-Type': 'application/json' },
-            ...options,
-        });
-        return await resp.json();
-    } catch (e) {
-        toast('API 调用失败: ' + e.message, 'error');
-        return null;
-    }
-}
-
-// Dashboard
-async function loadDashboard() {
-    const health = await api('health');
-    if (health) {
-        document.getElementById('stat-videos').textContent = '0';
-        document.getElementById('stat-assets').textContent = '0';
-        document.getElementById('stat-success').textContent = '100%';
-        document.getElementById('stat-latency').textContent = '-';
-    }
-    const runs = await api('orchestrate');
-    if (runs && runs.runs) {
-        const container = document.getElementById('recent-runs');
-        if (runs.runs.length === 0) {
-            container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div>';
-        } else {
-            container.innerHTML = '<table class="table"><thead><tr><th>运行ID</th><th>类型</th><th>状态</th><th>输入</th></tr></thead><tbody>' +
-                runs.runs.slice(0, 5).map(r => `<tr><td>${r.run_id}</td><td>${r.workflow_type}</td><td><span class="badge badge-${r.status === 'success' ? 'success' : r.status === 'failed' ? 'failed' : 'running'}">${r.status}</span></td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${r.input}</td></tr>`).join('') +
-                '</tbody></table>';
-        }
-    }
-}
-
-// 创建工作流
-async function createWorkflow() {
-    const input = document.getElementById('input-value').value.trim();
-    if (!input) { toast('请输入商品信息', 'error'); return; }
-
-    const body = {
-        input_value: input,
-        workflow: document.getElementById('workflow-type').value,
-        num_scenes: parseInt(document.getElementById('num-scenes').value),
-        aspect_ratio: document.getElementById('aspect-ratio').value,
-        voice: document.getElementById('voice').value,
-    };
-
-    document.getElementById('btn-create').disabled = true;
-    document.getElementById('progress-card').style.display = 'block';
-    document.getElementById('result-card').style.display = 'none';
-
-    toast('工作流已启动');
-    const result = await api('orchestrate/sync', {
-        method: 'POST',
-        body: JSON.stringify(body),
-    });
-
-    document.getElementById('btn-create').disabled = false;
-
-    if (result && result.success) {
-        document.getElementById('progress-fill').style.width = '100%';
-        document.getElementById('progress-text').textContent = '✅ 创作完成！';
-        renderTimeline(result.tasks_summary || []);
-        renderResult(result.artifacts || {});
-        toast('创作完成！');
-    } else {
-        document.getElementById('progress-text').textContent = '❌ 创作失败';
-        toast('创作失败: ' + (result?.error || '未知错误'), 'error');
-    }
-}
-
-function renderTimeline(tasks) {
-    const container = document.getElementById('task-timeline');
-    container.innerHTML = tasks.map(t => `
-        <div class="timeline-item">
-            <div class="timeline-dot ${t.status}"></div>
-            <div class="timeline-title">${t.agent} - ${t.action}</div>
-            <div class="timeline-meta">${t.status}${t.degraded ? ' (降级)' : ''}${t.duration_sec ? ' · ' + t.duration_sec + 's' : ''}</div>
-        </div>
-    `).join('');
-}
-
-function renderResult(artifacts) {
-    const container = document.getElementById('result-content');
-    document.getElementById('result-card').style.display = 'block';
-    let html = '';
-    if (artifacts.video && artifacts.video.output_path) {
-        html += `<p style="margin-bottom:12px"><strong>视频路径:</strong> ${artifacts.video.output_path}</p>`;
-        html += `<p style="margin-bottom:12px"><strong>时长:</strong> ${artifacts.video.duration_sec}s · <strong>分辨率:</strong> ${artifacts.video.resolution || '-'}</p>`;
-    }
-    if (artifacts.creative) {
-        html += `<p style="margin-bottom:8px"><strong>创意主题:</strong> ${artifacts.creative.theme || '-'}</p>`;
-    }
-    if (artifacts.storyboard) {
-        html += `<p><strong>分镜数:</strong> ${artifacts.storyboard.total_shots || '-'}</p>`;
-    }
-    container.innerHTML = html || '<div class="empty-state">无产物</div>';
-}
-
-// 运行列表
-async function loadRuns() {
-    const data = await api('orchestrate');
-    const tbody = document.getElementById('runs-table');
-    if (!data || !data.runs || data.runs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">暂无运行记录</td></tr>';
-        return;
-    }
-    tbody.innerHTML = data.runs.map(r => `
-        <tr>
-            <td>${r.run_id}</td>
-            <td>${r.workflow_type}</td>
-            <td><span class="badge badge-${r.status === 'success' ? 'success' : r.status === 'failed' ? 'failed' : 'running'}">${r.status}</span></td>
-            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${r.input}</td>
-            <td><button class="btn btn-secondary" style="padding:4px 12px" onclick="viewRun('${r.run_id}')">查看</button></td>
-        </tr>
-    `).join('');
-}
-
-async function viewRun(runId) {
-    const data = await api('orchestrate/' + runId);
-    if (!data) return;
-    showPage('create');
-    document.getElementById('progress-card').style.display = 'block';
-    document.getElementById('progress-fill').style.width = data.status === 'success' ? '100%' : '50%';
-    document.getElementById('progress-text').textContent = '运行状态: ' + data.status;
-    renderTimeline(data.tasks || []);
-    if (data.final_outputs) renderResult(data.final_outputs.artifacts || {});
-}
-
-// 场景模板
-async function loadScenes() {
-    const data = await api('scenes');
-    const grid = document.getElementById('scenes-grid');
-    if (!data || !data.scenes) { grid.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
-    grid.innerHTML = data.scenes.map(s => `
-        <div class="stat-card">
-            <div style="font-size:24px;margin-bottom:8px">${s.emoji || '🎬'}</div>
-            <div style="font-weight:600;margin-bottom:4px">${s.name}</div>
-            <div style="color:var(--text-muted);font-size:13px">${s.description || ''}</div>
-        </div>
-    `).join('');
-}
-
-// 系统健康
-async function loadHealth() {
-    const data = await api('health');
-    const card = document.getElementById('health-card');
-    if (!data) { card.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
-    const checks = data.checks || {};
-    card.innerHTML = `
-        <p style="margin-bottom:16px"><strong>整体状态:</strong> <span class="badge badge-${data.status === 'healthy' ? 'success' : 'degraded'}">${data.status}</span></p>
-        <table class="table">
-            <thead><tr><th>组件</th><th>状态</th><th>详情</th></tr></thead>
-            <tbody>
-                ${Object.entries(checks).map(([k, v]) => `
-                    <tr>
-                        <td>${k}</td>
-                        <td><span class="badge badge-${v.healthy ? 'success' : 'failed'}">${v.healthy ? '✅ 正常' : '❌ 异常'}</span></td>
-                        <td style="color:var(--text-muted)">${v.message || ''}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-}
+// ===== LLM 路由 =====
+async function loadLlmPage(){const status=await api('api/llm/status');const providers=await api('api/llm/providers');if(status){document.getElementById('llm-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">总提供商</div><div class="stat-value">'+status.total_providers+'</div></div><div class="stat-card"><div class="stat-label">可用</div><div class="stat-value success">'+status.available_providers+'</div></div><div class="stat-card"><div class="stat-label">熔断中</div><div class="stat-value '+(status.broken_providers>0?'error':'')+'">'+status.broken_providers+'</div></div><div class="stat-card"><div class="stat-label">策略</div><div class="stat-value" style="font-size:18px">'+status.strategy+'</div></div>';}if(providers){document.getElementById('llm-providers-list').innerHTML=providers.providers.map(p=>'<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between"><strong>'+p.name+'</strong><span class="badge '+(p.available?'badge-success':'badge-failed')+'">'+(p.available?'可用':'未配置')+'</span></div><div style="color:var(--text-muted);font-size:13px;margin-top:4px">模型: '+p.model+' · 调用: '+(p.call_count||0)+' · 成功率: '+((p.success_rate||1)*100).toFixed(0)+'%</div></div>').join('');}}
+async function llmTestGenerate(){const prompt=document.getElementById('llm-test-prompt').value.trim();if(!prompt){toast('请输入提示词','error');return;}document.getElementById('llm-test-result').innerHTML='<div class="empty-state">生成中...</div>';const result=await api('api/llm/generate',{method:'POST',body:JSON.stringify({user_prompt:prompt,purpose:document.getElementById('llm-test-purpose').value,system_prompt:'你是营销创意助手',max_tokens:500})});if(result&&result.text){document.getElementById('llm-test-result').innerHTML='<div class="json-view">'+result.text+'</div><p style="margin-top:8px;color:var(--text-muted);font-size:13px">提供商: '+result.provider_name+' · 模型: '+result.model+' · 耗时: '+result.latency_ms+'ms</p>';}else{document.getElementById('llm-test-result').innerHTML='<div class="empty-state">生成失败</div>';}}
+async function loadLlmUsage(){const data=await api('api/llm/usage');if(data&&data.stats){document.getElementById('llm-usage').innerHTML='<table class="table"><thead><tr><th>提供商</th><th>调用</th><th>成功</th><th>失败</th><th>成功率</th><th>平均延迟</th></tr></thead><tbody>'+Object.entries(data.stats).map(([k,v])=>'<tr><td>'+k+'</td><td>'+v.total_calls+'</td><td>'+v.success_calls+'</td><td>'+v.failed_calls+'</td><td>'+((v.success_rate||0)*100).toFixed(0)+'%</td><td>'+v.avg_latency_ms+'ms</td></tr>').join('')+'</tbody></table>';}else{document.getElementById('llm-usage').innerHTML='<div class="empty-state">暂无数据</div>';}}
+// ===== AB 测试 =====
+async function loadAbtest(){const data=await api('api/abtest');const c=document.getElementById('abtest-list');if(!data||!data.experiments||data.experiments.length===0){c.innerHTML='<div class="empty-state">暂无实验</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>名称</th><th>状态</th><th>操作</th></tr></thead><tbody>'+data.experiments.map(e=>'<tr><td>'+e.experiment_id+'</td><td>'+e.name+'</td><td><span class="badge badge-muted">'+e.status+'</span></td><td><button class="btn btn-secondary btn-sm" onclick="viewAbtest(\''+e.experiment_id+'\')">查看</button></td></tr>').join('')+'</tbody></table>';}
+async function viewAbtest(id){const data=await api('api/abtest/'+id+'/analyze');const detail=document.getElementById('abtest-detail');detail.style.display='block';if(data){document.getElementById('abtest-detail-content').innerHTML=jsonView(data);}else{document.getElementById('abtest-detail-content').innerHTML='<div class="empty-state">无数据</div>';}}
+function showAbtestCreate(){toast('AB测试创建功能 - 请通过 API 创建','success');}
+// ===== 认证 =====
+async function doLogin(){const username=document.getElementById('login-username').value.trim();if(!username){toast('请输入用户名','error');return;}const result=await api('api/auth/login',{method:'POST',body:JSON.stringify({username})});if(result&&result.token){document.getElementById('login-result').innerHTML='<div class="json-view">登录成功!\ntoken: '+result.token.substring(0,30)+'...\n用户: '+result.user.username+' ('+result.user.role+')</div>';document.getElementById('user-avatar').textContent=result.user.username[0].toUpperCase();toast('登录成功');loadAuthUsers();}else{document.getElementById('login-result').innerHTML='<div class="empty-state">登录失败</div>';}}
+async function createUser(){const body={username:document.getElementById('new-username').value,email:document.getElementById('new-email').value,tenant_id:document.getElementById('new-tenant').value,role:document.getElementById('new-role').value};if(!body.username||!body.email){toast('请填写用户名和邮箱','error');return;}const result=await api('api/auth/users',{method:'POST',body:JSON.stringify(body)});if(result){toast('用户创建: '+result.username);loadAuthUsers();}}
+async function loadAuthUsers(){const data=await api('api/auth/users');const c=document.getElementById('auth-users-list');if(!data||!data.users||data.users.length===0){c.innerHTML='<div class="empty-state">暂无用户</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>租户</th><th>SSO</th></tr></thead><tbody>'+data.users.map(u=>'<tr><td>'+u.username+'</td><td>'+u.email+'</td><td><span class="badge badge-muted">'+u.role+'</span></td><td>'+u.tenant_id+'</td><td>'+(u.sso_provider||'-')+'</td></tr>').join('')+'</tbody></table>';}
+// ===== Webhook =====
+async function createWebhook(){const body={tenant_id:document.getElementById('wh-tenant').value,url:document.getElementById('wh-url').value,events:document.getElementById('wh-events').value.split(',').map(s=>s.trim())};if(!body.url){toast('请输入回调URL','error');return;}const result=await api('api/webhooks',{method:'POST',body:JSON.stringify(body)});if(result){toast('订阅创建: '+result.subscription_id);loadWebhooks();}}
+async function publishWebhook(){const eventType=document.getElementById('wh-publish-event').value;let payload={};try{payload=JSON.parse(document.getElementById('wh-payload').value);}catch(e){toast('JSON格式错误','error');return;}const result=await api('api/webhooks/publish',{method:'POST',body:JSON.stringify({event_type:eventType,payload:payload})});if(result)toast('事件已发布: '+result.count+' 个投递');loadWebhooks();}
+async function loadWebhooks(){const data=await api('api/webhooks');const c=document.getElementById('wh-list');if(!data||!data.subscriptions||data.subscriptions.length===0){c.innerHTML='<div class="empty-state">暂无订阅</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>URL</th><th>事件</th><th>状态</th><th>操作</th></tr></thead><tbody>'+data.subscriptions.map(s=>'<tr><td>'+s.subscription_id.substring(0,16)+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">'+s.url+'</td><td>'+s.events.join(', ')+'</td><td><span class="badge '+(s.active?'badge-success':'badge-failed')+'">'+(s.active?'活跃':'停用')+'</span></td><td><button class="btn btn-danger btn-sm" onclick="deleteWebhook(\''+s.subscription_id+'\')">删除</button></td></tr>').join('')+'</tbody></table>';}
+async function deleteWebhook(id){const result=await api('api/webhooks/'+id,{method:'DELETE'});if(result){toast('已删除');loadWebhooks();}}
+// ===== 租户 =====
+async function loadTenants(){const data=await api('api/tenants');const c=document.getElementById('tenant-list');if(!data||!data.tenants||data.tenants.length===0){c.innerHTML='<div class="empty-state">暂无租户</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>名称</th><th>套餐</th><th>API Key</th><th>操作</th></tr></thead><tbody>'+data.tenants.map(t=>'<tr><td>'+t.name+'</td><td><span class="badge badge-muted">'+t.plan+'</span></td><td style="font-family:monospace;font-size:12px">'+(t.api_key||'').substring(0,16)+'...</td><td><button class="btn btn-secondary btn-sm" onclick="viewTenantQuota(\''+t.tenant_id+'\')">配额</button></td></tr>').join('')+'</tbody></table>';}
+async function viewTenantQuota(id){const data=await api('api/tenants/'+id+'/quota');if(data)toast('配额: '+JSON.stringify(data.quotas));}
+function showTenantCreate(){const name=prompt('租户名称:');if(!name)return;const plan=prompt('套餐(free/pro/enterprise):','free');api('api/tenants',{method:'POST',body:JSON.stringify({name,plan})}).then(()=>{toast('租户创建成功');loadTenants();});}
+// ===== 存储 =====
+async function loadStorage(){const stats=await api('api/storage/stats');const objs=await api('api/storage/objects');if(stats){document.getElementById('storage-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">总对象数</div><div class="stat-value">'+(stats.total_objects||0)+'</div></div><div class="stat-card"><div class="stat-label">总大小</div><div class="stat-value">'+((stats.total_size||0)/1024).toFixed(1)+'KB</div></div><div class="stat-card"><div class="stat-label">后端</div><div class="stat-value" style="font-size:18px">'+(stats.backend||'-')+'</div></div>';}const c=document.getElementById('storage-objects');if(!objs||!objs.objects||objs.objects.length===0){c.innerHTML='<div class="empty-state">暂无对象</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>Key</th><th>大小</th><th>分类</th></tr></thead><tbody>'+objs.objects.map(o=>'<tr><td style="font-family:monospace;font-size:12px">'+o.key+'</td><td>'+((o.size||0)/1024).toFixed(1)+'KB</td><td>'+o.category+'</td></tr>').join('')+'</tbody></table>';}
+// ===== 任务队列 =====
+async function loadQueuePage(){const data=await api('api/queue/tasks');if(data){document.getElementById('queue-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">队列大小</div><div class="stat-value">'+data.queue_size+'</div></div><div class="stat-card"><div class="stat-label">总任务</div><div class="stat-value">'+(data.tasks||[]).length+'</div></div>';}const c=document.getElementById('queue-task-list');if(!data||!data.tasks||data.tasks.length===0){c.innerHTML='<div class="empty-state">暂无任务</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>任务ID</th><th>函数</th><th>状态</th><th>重试</th></tr></thead><tbody>'+data.tasks.map(t=>'<tr><td style="font-family:monospace;font-size:12px">'+t.task_id.substring(0,16)+'</td><td>'+t.func_name+'</td><td><span class="badge badge-muted">'+t.state+'</span></td><td>'+t.retries+'</td></tr>').join('')+'</tbody></table>';}
+async function loadQueueTasks(){loadQueuePage();}
+async function startWorkers(n){await api('api/queue/workers/start?num_workers='+n,{method:'POST'});toast('Worker已启动');}
+async function stopWorkers(){await api('api/queue/workers/stop',{method:'POST'});toast('Worker已停止');}
+// ===== JNPF =====
+async function loadJnpfForm(){const data=await api('api/jnpf/form-schema');if(data){document.getElementById('jnpf-form-schema').innerHTML=jsonView(data);}}
+async function jnpfValidateForm(){const data={input_value:document.getElementById('jnpf-validate-input').value,workflow:document.getElementById('jnpf-validate-wf').value,num_scenes:parseInt(document.getElementById('jnpf-validate-scenes').value)};const result=await api('api/jnpf/form-validate',{method:'POST',body:JSON.stringify({data})});if(result){document.getElementById('jnpf-validate-result').innerHTML='<p><span class="badge '+(result.valid?'badge-success':'badge-failed')+'">'+(result.valid?'校验通过':'校验失败')+'</span></p>'+jsonView(result.errors||{});}}
+async function jnpfEvalRules(){const data={workflow:document.getElementById('jnpf-validate-wf').value};const result=await api('api/jnpf/form-rules',{method:'POST',body:JSON.stringify({data})});if(result){document.getElementById('jnpf-validate-result').innerHTML=jsonView(result);}}
+function switchJnpfTab(tab,el){document.querySelectorAll('#page-jnpf .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('jnpf-tab-form').style.display=tab==='form'?'block':'none';document.getElementById('jnpf-tab-flow').style.display=tab==='flow'?'block':'none';if(tab==='flow')loadJnpfFlow();}
+async function loadJnpfFlow(){const data=await api('api/jnpf/workflow-definition');if(data){document.getElementById('jnpf-flow-def').innerHTML='<table class="table"><thead><tr><th>节点</th><th>类型</th><th>名称</th><th>Agent</th></tr></thead><tbody>'+data.nodes.map(n=>'<tr><td>'+n.node_id+'</td><td><span class="badge badge-muted">'+n.node_type+'</span></td><td>'+n.name+'</td><td>'+(n.agent||'-')+'</td></tr>').join('')+'</tbody></table>';}}
+async function jnpfRunFlow(){let ctx={};try{ctx=JSON.parse(document.getElementById('jnpf-flow-ctx').value);}catch(e){toast('JSON格式错误','error');return;}const result=await api('api/jnpf/workflow-run',{method:'POST',body:JSON.stringify({context:ctx})});if(result){document.getElementById('jnpf-flow-result').innerHTML='<p><span class="badge '+(result.status==='completed'?'badge-success':'badge-failed')+'">'+result.status+'</span></p>'+jsonView(result);}}
+// ===== 复利系统 =====
+async function loadCompoundTemplates(){const data=await api('api/compound/templates');const c=document.getElementById('compound-templates');if(!data||!data.templates||data.templates.length===0){c.innerHTML='<div class="empty-state">暂无模板，<button class="btn btn-primary btn-sm" onclick="initCompoundDefaults()">初始化默认模板</button></div>';return;}c.innerHTML='<table class="table"><thead><tr><th>名称</th><th>类型</th><th>使用次数</th><th>父模板</th></tr></thead><tbody>'+data.templates.map(t=>'<tr><td>'+t.name+'</td><td>'+t.asset_type+'</td><td>'+t.use_count+'</td><td>'+(t.parent_template||'-')+'</td></tr>').join('')+'</tbody></table>';}
+async function initCompoundDefaults(){toast('请通过 API 初始化','success');}
+async function loadVersions(){const id=document.getElementById('compound-ver-asset').value;const data=await api('api/compound/versions/'+id);if(data){document.getElementById('compound-versions-list').innerHTML=jsonView(data);}}
+async function compoundPipeline(){const result=await api('api/compound/compose/pipeline',{method:'POST',body:JSON.stringify({steps:[{instruction:'generate.creative',params:{product_info:{title:'测试'}},output_key:'creative'}]})});if(result){document.getElementById('compound-compose-result').innerHTML=jsonView(result);}}
+function switchCompoundTab(tab,el){document.querySelectorAll('#page-compound .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['templates','versions','compose'].forEach(t=>{document.getElementById('compound-tab-'+t).style.display=t===tab?'block':'none';});}
+// ===== 监控 =====
+async function loadMonitoring(){const alerts=await api('api/monitoring/alerts');const rules=await api('api/monitoring/rules');const dash=await api('api/monitoring/dashboard');if(alerts){const c=document.getElementById('monitoring-alerts');if(!alerts.alerts||alerts.alerts.length===0){c.innerHTML='<div class="empty-state">无活跃告警</div>';}else{c.innerHTML=alerts.alerts.map(a=>'<div style="padding:12px 0;border-bottom:1px solid var(--border)"><strong>'+a.rule_name+'</strong><span class="badge badge-failed">'+a.severity+'</span></div>').join('');}}if(rules){document.getElementById('monitoring-rules').innerHTML='<table class="table"><tbody>'+rules.rules.map(r=>'<tr><td>'+r.name+'</td><td><span class="badge badge-muted">'+r.severity+'</span></td></tr>').join('')+'</tbody></table>';}if(dash){document.getElementById('monitoring-dashboard').innerHTML=jsonView(dash);}}
 
 // 初始化
 loadDashboard();
