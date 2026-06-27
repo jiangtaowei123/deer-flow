@@ -19,7 +19,7 @@ scrape_configs:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
+        - targets: []  # 启用 Alertmanager 时填入地址，如 ["alertmanager:9093"]
 
 rule_files:
-  # - "alerts.yml"
+  - "alerts.yml"

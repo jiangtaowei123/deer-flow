@@ -159,13 +159,16 @@ class TenantManager:
         if not tenant:
             return None
 
-        if "plan" in kwargs:
+        if "plan" in kwargs and kwargs["plan"] is not None:
             tenant.plan = kwargs["plan"]
             tenant.quota = PLAN_QUOTAS.get(tenant.plan, PLAN_QUOTAS["free"]).copy()
-        if "name" in kwargs:
+        if "name" in kwargs and kwargs["name"] is not None:
             tenant.name = kwargs["name"]
-        if "active" in kwargs:
+        if "active" in kwargs and kwargs["active"] is not None:
             tenant.active = kwargs["active"]
+        if "api_key" in kwargs and kwargs["api_key"]:
+            # 支持手动更新 api_key（商用场景：密钥轮换）
+            tenant.api_key = kwargs["api_key"]
 
         self._save_tenants()
         return tenant

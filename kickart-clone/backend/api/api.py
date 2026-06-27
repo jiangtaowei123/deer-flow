@@ -19,11 +19,24 @@ from pydantic import BaseModel, Field
 # 添加项目路径
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "skills" / "product-parse" / "scripts"))
-sys.path.insert(0, str("/workspace/skills/public/amazon-product-image/scripts"))
+# 外部 skills 目录：优先用项目内相对路径，回退到宿主路径（开发环境兼容）
+_external_skills = PROJECT_ROOT / "skills" / "public" / "amazon-product-image" / "scripts"
+if not _external_skills.exists():
+    _external_skills = Path("/workspace/skills/public/amazon-product-image/scripts")
+sys.path.insert(0, str(_external_skills))
 sys.path.insert(0, str(PROJECT_ROOT / "backend" / "api"))
 
 from parse import ProductParser
-from generate import StableDiffusionBatchGenerator
+# generate 模块位于外部 skills 目录，容器/精简环境下可能缺失，做优雅降级
+try:
+    from generate import StableDiffusionBatchGenerator
+except ImportError:
+    class StableDiffusionBatchGenerator:  # type: ignore[no-redef]
+        """降级桩：外部 skills/generate.py 不可用时返回空结果，避免容器启动崩溃"""
+        def __init__(self, *args, **kwargs):
+            self._available = False
+        def generate_batch(self, *args, **kwargs):
+            return [{"status": "skipped", "reason": "StableDiffusionBatchGenerator 未安装（外部 skills 模块缺失）"}]
 from platform_routes import router as platform_router
 
 app = FastAPI(

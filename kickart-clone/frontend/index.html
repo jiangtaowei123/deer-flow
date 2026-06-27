@@ -136,7 +136,7 @@
             <button class="lang-btn" onclick="setLang('en-US')">EN</button>
             <button class="lang-btn" onclick="setLang('ja-JP')">日</button>
         </div>
-        <div class="user-avatar" id="user-avatar" onclick="showPage('auth', document.querySelectorAll('.nav-item')[7])">G</div>
+        <div class="user-avatar" id="user-avatar" onclick="showPage('auth', document.querySelectorAll('.nav-item')[6])">G</div>
     </div>
 
     <main class="main">
@@ -522,7 +522,7 @@
                         <button class="btn btn-primary btn-sm" onclick="loadVersions()">查询</button>
                     </div>
                     <div class="form-group"><label class="form-label">资产 ID</label><input class="form-input" id="compound-ver-asset" value="asset_001"></div>
-                    <div id="compound-versions-list"></div>
+                    <div id="compound-versions-list"><div class="empty-state"><div class="empty-icon">📂</div>输入资产 ID 并点击"查询"查看版本历史</div></div>
                 </div>
             </div>
             <div id="compound-tab-compose" style="display:none">

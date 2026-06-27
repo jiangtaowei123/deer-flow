@@ -1,0 +1,43 @@
+# Kickart Clone Prometheus 告警规则
+groups:
+  - name: kickart-api-alerts
+    rules:
+      # API 不可达
+      - alert: KickartApiDown
+        expr: up{job="kickart-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kickart API 不可达"
+          description: "Kickart API ({{ $labels.instance }}) 已离线超过 1 分钟"
+
+      # API 错误率高
+      - alert: KickartHighErrorRate
+        expr: rate(kickart_api_errors_total[5m]) / rate(kickart_api_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API 错误率过高 ({{ $value | humanizePercentage }})"
+          description: "近 5 分钟 API 错误率超过 5%"
+
+      # Agent 成功率低
+      - alert: KickartLowAgentSuccessRate
+        expr: kickart_agent_success_rate < 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent 成功率过低 ({{ $value }})"
+          description: "Agent 成功率低于 90%，持续 10 分钟"
+
+      # 端到端延迟过高
+      - alert: KickartHighLatency
+        expr: kickart_e2e_latency_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "端到端延迟过高 ({{ $value }}s)"
+          description: "视频生成端到端延迟超过 5 分钟"

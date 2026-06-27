@@ -591,25 +591,46 @@ async def get_abtest_detail(experiment_id: str):
 
 @router.post("/abtest/{experiment_id}/run")
 async def run_abtest(experiment_id: str):
-    """运行实验"""
-    exp = get_abtest().run_experiment(experiment_id)
+    """运行实验（无 LLM Key 时返回明确降级状态，不伪装 RUNNING）"""
+    try:
+        exp = get_abtest().run_experiment(experiment_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     if not exp:
         raise HTTPException(404, "实验不存在")
-    return {"experiment_id": exp.experiment_id, "status": exp.status}
+    # 检测是否所有变体都因 LLM 缺失而降级
+    variants = getattr(exp, "variants", [])
+    all_degraded = bool(variants) and all(
+        getattr(v, "status", "") == "pending" and "error" in (getattr(v, "artifacts", {}) or {})
+        for v in variants
+    )
+    status = "degraded_no_llm" if all_degraded else exp.status
+    return {
+        "experiment_id": exp.experiment_id,
+        "status": status,
+        "variants_count": len(variants),
+        "note": "变体因 LLM Key 未配置而降级，请配置 LLM 后重试" if all_degraded else "",
+    }
 
 
 @router.post("/abtest/{experiment_id}/metrics/{variant_id}")
 async def record_metrics(experiment_id: str, variant_id: str, request: Request):
     """记录指标"""
     body = await request.json()
-    get_abtest().record_metrics(experiment_id, variant_id, body)
+    try:
+        get_abtest().record_metrics(experiment_id, variant_id, body)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     return {"success": True}
 
 
 @router.get("/abtest/{experiment_id}/analyze")
 async def analyze_abtest(experiment_id: str):
     """分析实验"""
-    result = get_abtest().analyze(experiment_id)
+    try:
+        result = get_abtest().analyze(experiment_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     return result
 
 

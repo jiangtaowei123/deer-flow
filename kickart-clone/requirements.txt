@@ -9,3 +9,8 @@ Pillow>=10.0.0
 edge-tts>=6.1.9
 prometheus-client>=0.19.0
 python-multipart>=0.0.6
+# 生产队列后端（docker-compose 已部署 redis 服务）
+redis>=5.0.0
+# 测试依赖
+httpx>=0.25.0
+pytest>=7.4.0

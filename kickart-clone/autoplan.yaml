@@ -344,6 +344,44 @@ iterations:
         title: 最终完整闭环验证（23/23 测试通过，零空壳）
         status: completed
 
+  - id: V10-11
+    name: 商用级深度审查与配置加固（第二轮）
+    duration: 1周
+    status: completed
+    deliverables:
+      - 三维度深度审查：前端 58 按钮/15 页面、后端 86 端点、8 个配置文件
+      - 前端修复：user-avatar 索引 [7]→[6]、compound-versions-list 占位文案
+      - 后端修复：abtest run/analyze/metrics 异常处理（ValueError→404）、run 降级状态语义（degraded_no_llm）、monitoring 基线指标播种、tenant PUT 支持 api_key 更新
+      - Docker 修复：generate.py 优雅降级（ImportError→stub）、硬编码路径改为相对路径+回退
+      - CI 修复：补 v7/v8/v9 测试为 blocking、移除 V6 continue-on-error、补 httpx 依赖
+      - 依赖修复：requirements.txt 补 redis/httpx/pytest
+      - 监控修复：prometheus.yml targets 空值→[]、新增 alerts.yml 告警规则文件（4 条规则）
+    success_criteria:
+      - V7+V8+V9 测试 23/23 全部通过（blocking）
+      - 前端零空壳（58 onclick 全实现，15 页面全有内容）
+      - 后端零空壳（86 端点全有业务逻辑，无方法缺失）
+      - Docker 镜像可启动（generate.py 优雅降级）
+      - CI 质量门禁生效（V6/V7/V8/V9 blocking）
+    tasks:
+      - id: T11.1
+        title: 三维度深度审查（前端+后端+配置）
+        status: completed
+      - id: T11.2
+        title: 前端修复（user-avatar 索引+占位文案）
+        status: completed
+      - id: T11.3
+        title: 后端修复（abtest 异常+monitoring 基线+tenant api_key）
+        status: completed
+      - id: T11.4
+        title: Docker 修复（generate.py 降级+路径回退）
+        status: completed
+      - id: T11.5
+        title: CI/依赖/监控修复（ci.yml+requirements+prometheus+alerts.yml）
+        status: completed
+      - id: T11.6
+        title: 最终测试验证（23/23 全部通过）
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos

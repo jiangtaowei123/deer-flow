@@ -149,6 +149,26 @@ class MonitoringSystem:
 
         self._lock = threading.Lock()
 
+        # 初始基线指标（避免仪表盘冷启动全 0，真实业务上线后会被覆盖）
+        self._seed_baseline_metrics()
+
+    def _seed_baseline_metrics(self):
+        """播种基线指标 - 商用系统冷启动时的合理默认值"""
+        baseline = {
+            "daily_videos": 0,
+            "daily_assets": 0,
+            "agent_success_rate": 1.0,
+            "e2e_latency": 0.0,
+            "api_error_rate": 0.0,
+        }
+        now = time.time()
+        for name, value in baseline.items():
+            self.metrics[name].append({
+                "timestamp": now,
+                "value": value,
+                "labels": {"source": "baseline_seed"},
+            })
+
     # ============ 指标采集 ============
 
     def record_metric(self, name: str, value: float, labels: dict = None):
