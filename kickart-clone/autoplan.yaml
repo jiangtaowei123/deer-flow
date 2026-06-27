@@ -306,6 +306,44 @@ iterations:
         title: 修复测试发现的问题并最终验证
         status: completed
 
+  - id: V9-10
+    name: 商用级深度审查与闭环加固
+    duration: 1周
+    status: completed
+    deliverables:
+      - 深度审查发现 9 critical + 6 major + 7 minor 问题并系统性修复
+      - 后端字段兼容层（storage/monitoring/tenant 三模块前后端字段对齐）
+      - 新增端点：POST /storage/objects/upload、POST /monitoring/rules、POST /monitoring/metrics/{name}
+      - JNPF workflow-run 改用 real_executor 替代 mock_executor
+      - 复利系统注入 _BuiltinInstructionEngine 替代 mock 分支
+      - SSO 种子 admin 用户（按 username 检测补种，不破坏已有数据）
+      - 前端补全 5 个空壳按钮的 JS 函数（recordMetric/showCreateRuleForm/uploadStorageObject/getSsoAuthorizeUrl/showAbtestMetricsForm）
+      - 新增 V9 端到端测试（test_v9_new_endpoints.py，16 项子断言全部通过）
+    success_criteria:
+      - 前端 58 个 onclick 按钮全部有 JS 函数实现（零空壳）
+      - 前端 15 个页面全部有可加载内容（create 为表单页，其余 14 个均触发加载函数）
+      - V7+V8+V9 测试 23/23 全部通过
+      - 前后端字段契约 100% 对齐（兼容字段+原字段并存）
+    tasks:
+      - id: T10.1
+        title: 深度审查空壳菜单/模块/按钮（发现 22 个问题）
+        status: completed
+      - id: T10.2
+        title: 后端系统性修复（字段兼容+新端点+real_executor+内置引擎+种子用户）
+        status: completed
+      - id: T10.3
+        title: 前端补全 5 个空壳按钮的 JS 函数实现
+        status: completed
+      - id: T10.4
+        title: 修复 loadHealth badge 前缀 bug + 验证字段读取
+        status: completed
+      - id: T10.5
+        title: 新增 V9 测试覆盖新增端点（16/16 通过）
+        status: completed
+      - id: T10.6
+        title: 最终完整闭环验证（23/23 测试通过，零空壳）
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos

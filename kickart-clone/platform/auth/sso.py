@@ -205,6 +205,11 @@ class SSOManager:
                 for u_data in json.load(f).get("users", []):
                     user = User(**u_data)
                     self.users[user.user_id] = user
+        # 始终保证有一个默认 admin 用户（不破坏已有数据）
+        # 检查 admin 用户名是否已存在，缺失则补种
+        has_admin = any(u.username == "admin" for u in self.users.values())
+        if not has_admin:
+            self._seed_default_admin()
 
     def _save_users(self):
         """保存用户"""
@@ -228,6 +233,23 @@ class SSOManager:
                 ],
                 "updated_at": datetime.now().isoformat(),
             }, f, ensure_ascii=False, indent=2)
+
+    def _seed_default_admin(self):
+        """种子默认 admin 用户（首次启动时创建，便于登录测试）"""
+        admin = User(
+            user_id="user_admin_default",
+            username="admin",
+            email="admin@kickart.local",
+            tenant_id="default",
+            role="admin",
+            created_at=time.time(),
+        )
+        self.users[admin.user_id] = admin
+        # 也补一个默认 tenant（避免后续查询出错）
+        try:
+            self._save_users()
+        except Exception:
+            pass
 
     # ============ 用户管理 ============
 

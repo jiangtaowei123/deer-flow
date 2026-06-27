@@ -82,6 +82,26 @@
         .lang-switch { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
         .lang-btn { padding: 4px 10px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 12px; }
         .lang-btn.active { background: var(--primary); color: white; }
+        /* 模态框 */
+        .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-mask.show { display: flex; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 90%; max-width: 540px; max-height: 88vh; overflow-y: auto; }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        /* 折叠面板 */
+        .accordion { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        .accordion-head { padding: 12px 16px; background: var(--bg); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-body { padding: 16px; display: none; }
+        .accordion.open .accordion-body { display: block; }
+        /* 徽章警告 */
+        .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .badge-info { background: rgba(99,102,241,0.15); color: var(--primary); }
+        /* 链接按钮 */
+        .btn-link { background: transparent; color: var(--primary); padding: 4px 8px; border: none; cursor: pointer; font-size: 13px; }
+        .btn-link:hover { text-decoration: underline; }
+        /* 操作组 */
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -89,25 +109,25 @@
     <aside class="sidebar">
         <div class="logo">🎬 Kickart</div>
         <div class="nav-section">创作</div>
-        <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="nav-icon">📊</span> 工作台</div>
-        <div class="nav-item" onclick="showPage('create', this)"><span class="nav-icon">✨</span> 新建创作</div>
-        <div class="nav-item" onclick="showPage('runs', this)"><span class="nav-icon">📋</span> 创作历史</div>
-        <div class="nav-item" onclick="showPage('scenes', this)"><span class="nav-icon">🎭</span> 场景模板</div>
+        <div class="nav-item active" data-i18n="nav.dashboard" onclick="showPage('dashboard', this)"><span class="nav-icon">📊</span> 工作台</div>
+        <div class="nav-item" data-i18n="nav.create" onclick="showPage('create', this)"><span class="nav-icon">✨</span> 新建创作</div>
+        <div class="nav-item" data-i18n="nav.runs" onclick="showPage('runs', this)"><span class="nav-icon">📋</span> 创作历史</div>
+        <div class="nav-item" data-i18n="nav.scenes" onclick="showPage('scenes', this)"><span class="nav-icon">🎭</span> 场景模板</div>
         <div class="nav-section">AI 能力</div>
-        <div class="nav-item" onclick="showPage('llm', this)"><span class="nav-icon">🧠</span> LLM 路由</div>
-        <div class="nav-item" onclick="showPage('abtest', this)"><span class="nav-icon">🅰️</span> A/B 测试</div>
+        <div class="nav-item" data-i18n="nav.llm" onclick="showPage('llm', this)"><span class="nav-icon">🧠</span> LLM 路由</div>
+        <div class="nav-item" data-i18n="nav.abtest" onclick="showPage('abtest', this)"><span class="nav-icon">🅰️</span> A/B 测试</div>
         <div class="nav-section">平台</div>
-        <div class="nav-item" onclick="showPage('auth', this)"><span class="nav-icon">🔐</span> 认证管理</div>
-        <div class="nav-item" onclick="showPage('webhooks', this)"><span class="nav-icon">🔗</span> Webhook</div>
-        <div class="nav-item" onclick="showPage('tenants', this)"><span class="nav-icon">🏢</span> 租户管理</div>
-        <div class="nav-item" onclick="showPage('storage', this)"><span class="nav-icon">📦</span> 对象存储</div>
-        <div class="nav-item" onclick="showPage('queue', this)"><span class="nav-icon">⚙️</span> 任务队列</div>
+        <div class="nav-item" data-i18n="nav.auth" onclick="showPage('auth', this)"><span class="nav-icon">🔐</span> 认证管理</div>
+        <div class="nav-item" data-i18n="nav.webhooks" onclick="showPage('webhooks', this)"><span class="nav-icon">🔗</span> Webhook</div>
+        <div class="nav-item" data-i18n="nav.tenants" onclick="showPage('tenants', this)"><span class="nav-icon">🏢</span> 租户管理</div>
+        <div class="nav-item" data-i18n="nav.storage" onclick="showPage('storage', this)"><span class="nav-icon">📦</span> 对象存储</div>
+        <div class="nav-item" data-i18n="nav.queue" onclick="showPage('queue', this)"><span class="nav-icon">⚙️</span> 任务队列</div>
         <div class="nav-section">低代码</div>
-        <div class="nav-item" onclick="showPage('jnpf', this)"><span class="nav-icon">📋</span> JNPF 表单</div>
-        <div class="nav-item" onclick="showPage('compound', this)"><span class="nav-icon">♻️</span> 复利系统</div>
+        <div class="nav-item" data-i18n="nav.jnpf" onclick="showPage('jnpf', this)"><span class="nav-icon">📋</span> JNPF 表单</div>
+        <div class="nav-item" data-i18n="nav.compound" onclick="showPage('compound', this)"><span class="nav-icon">♻️</span> 复利系统</div>
         <div class="nav-section">运维</div>
-        <div class="nav-item" onclick="showPage('health', this)"><span class="nav-icon">💚</span> 系统健康</div>
-        <div class="nav-item" onclick="showPage('monitoring', this)"><span class="nav-icon">📈</span> 监控告警</div>
+        <div class="nav-item" data-i18n="nav.health" onclick="showPage('health', this)"><span class="nav-icon">💚</span> 系统健康</div>
+        <div class="nav-item" data-i18n="nav.monitoring" onclick="showPage('monitoring', this)"><span class="nav-icon">📈</span> 监控告警</div>
     </aside>
 
     <div class="user-bar">
@@ -122,7 +142,7 @@
     <main class="main">
         <!-- ========== 工作台 ========== -->
         <div id="page-dashboard" class="page active">
-            <h1 class="page-title">工作台</h1>
+            <h1 class="page-title" data-i18n="nav.dashboard">工作台</h1>
             <p class="page-desc">一站式营销创作平台总览</p>
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-label">日成片数</div><div class="stat-value" id="stat-videos">-</div></div>
@@ -255,20 +275,36 @@
                 <div id="abtest-list"><div class="empty-state">加载中...</div></div>
             </div>
             <div class="card" id="abtest-detail" style="display:none">
-                <h3 style="margin-bottom:16px">实验详情</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>实验详情</h3>
+                    <div class="actions">
+                        <button class="btn btn-primary btn-sm" id="abtest-run-btn" onclick="runAbtest()">▶ 运行</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showAbtestMetricsForm()">录入指标</button>
+                        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('abtest-detail').style.display='none'">关闭</button>
+                    </div>
+                </div>
                 <div id="abtest-detail-content"></div>
             </div>
         </div>
 
         <!-- ========== 认证管理 ========== -->
         <div id="page-auth" class="page">
-            <h1 class="page-title">认证管理</h1>
+            <h1 class="page-title" data-i18n="nav.auth">认证管理</h1>
             <p class="page-desc">SSO 单点登录与权限矩阵</p>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">当前会话</div><div class="stat-value" id="auth-session-status" style="font-size:18px">未登录</div></div>
+                <div class="stat-card"><div class="stat-label">用户总数</div><div class="stat-value" id="auth-user-count">-</div></div>
+            </div>
             <div class="grid-2">
                 <div class="card">
                     <h3 style="margin-bottom:16px">登录</h3>
-                    <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="login-username" placeholder="输入用户名"></div>
-                    <button class="btn btn-primary" onclick="doLogin()">登录</button>
+                    <div class="form-group"><label class="form-label">用户名</label><input class="form-input" id="login-username" placeholder="输入用户名（默认 admin）" value="admin"></div>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="doLogin()">登录</button>
+                        <button class="btn btn-secondary" onclick="refreshMyToken()">刷新令牌</button>
+                        <button class="btn btn-danger" onclick="doLogout()">登出</button>
+                        <button class="btn btn-secondary" onclick="getSsoAuthorizeUrl()">SSO 授权</button>
+                    </div>
                     <div id="login-result" style="margin-top:16px"></div>
                 </div>
                 <div class="card">
@@ -283,7 +319,10 @@
                 </div>
             </div>
             <div class="card">
-                <h3 style="margin-bottom:16px">用户列表</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>用户列表</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="loadAuthUsers()">刷新</button>
+                </div>
                 <div id="auth-users-list"><div class="empty-state">加载中...</div></div>
             </div>
         </div>
@@ -310,8 +349,27 @@
                 </div>
             </div>
             <div class="card">
-                <h3 style="margin-bottom:16px">订阅列表</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>订阅列表</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="loadWebhooks()">刷新</button>
+                </div>
                 <div id="wh-list"><div class="empty-state">加载中...</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3>投递记录</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="loadWhDeliveries()">刷新</button>
+                    </div>
+                    <div id="wh-deliveries" style="max-height:400px;overflow-y:auto"><div class="empty-state">点击刷新加载</div></div>
+                </div>
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3>死信队列</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="loadWhDeadLetters()">刷新</button>
+                    </div>
+                    <div id="wh-dead-letters" style="max-height:400px;overflow-y:auto"><div class="empty-state">点击刷新加载</div></div>
+                </div>
             </div>
         </div>
 
@@ -330,11 +388,23 @@
 
         <!-- ========== 对象存储 ========== -->
         <div id="page-storage" class="page">
-            <h1 class="page-title">对象存储</h1>
+            <h1 class="page-title" data-i18n="nav.storage">对象存储</h1>
             <p class="page-desc">统一对象存储管理（本地 / S3 / OSS）</p>
             <div class="stats-grid" id="storage-stats-grid"></div>
             <div class="card">
-                <h3 style="margin-bottom:16px">对象列表</h3>
+                <h3 style="margin-bottom:16px">上传对象</h3>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">分类</label><input class="form-input" id="storage-upload-category" value="general"></div>
+                    <div class="form-group"><label class="form-label">租户</label><input class="form-input" id="storage-upload-tenant" value="default"></div>
+                </div>
+                <div class="form-group"><label class="form-label">文件</label><input type="file" id="storage-upload-file"></div>
+                <button class="btn btn-primary" onclick="uploadStorageObject()">上传</button>
+            </div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>对象列表</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="loadStorage()">刷新</button>
+                </div>
                 <div id="storage-objects"><div class="empty-state">加载中...</div></div>
             </div>
         </div>
@@ -346,8 +416,23 @@
             <div class="stats-grid" id="queue-stats-grid"></div>
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>提交任务</h3>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">函数名</label><input class="form-input" id="queue-task-func" value="agents.lead_agent.scripts.orchestrator.execute_workflow"></div>
+                    <div class="form-group"><label class="form-label">任务名</label><input class="form-input" id="queue-task-name" placeholder="可选"></div>
+                </div>
+                <div class="form-group"><label class="form-label">参数 (JSON)</label><textarea class="form-textarea" id="queue-task-args" style="min-height:80px">["run-001"]</textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">优先级</label><select class="form-select" id="queue-task-priority"><option value="5">普通</option><option value="1">低</option><option value="10">高</option><option value="20">紧急</option></select></div>
+                    <div class="form-group"><label class="form-label">租户</label><input class="form-input" id="queue-task-tenant" value="default"></div>
+                </div>
+                <button class="btn btn-primary" onclick="submitQueueTask()">提交任务</button>
+            </div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
                     <h3>任务列表</h3>
-                    <div style="display:flex;gap:8px">
+                    <div class="actions">
                         <button class="btn btn-secondary btn-sm" onclick="startWorkers(2)">启动 Worker</button>
                         <button class="btn btn-secondary btn-sm" onclick="stopWorkers()">停止 Worker</button>
                         <button class="btn btn-secondary btn-sm" onclick="loadQueueTasks()">刷新</button>
@@ -407,23 +492,57 @@
             </div>
             <div id="compound-tab-templates">
                 <div class="card">
-                    <h3 style="margin-bottom:16px">资产模板</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3>资产模板</h3>
+                        <div class="actions">
+                            <button class="btn btn-secondary btn-sm" onclick="initCompoundDefaults()">初始化默认模板</button>
+                            <button class="btn btn-primary btn-sm" onclick="showCompoundTplCreate()">+ 创建模板</button>
+                            <button class="btn btn-secondary btn-sm" onclick="loadCompoundTemplates()">刷新</button>
+                        </div>
+                    </div>
                     <div id="compound-templates"><div class="empty-state">加载中...</div></div>
                 </div>
             </div>
             <div id="compound-tab-versions" style="display:none">
                 <div class="card">
-                    <h3 style="margin-bottom:16px">版本管理</h3>
+                    <h3 style="margin-bottom:16px">创建新版本</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">资产 ID</label><input class="form-input" id="compound-newver-asset" value="asset_001"></div>
+                        <div class="form-group"><label class="form-label">版本号</label><input class="form-input" id="compound-newver-version" value="v1.0.0"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">路径</label><input class="form-input" id="compound-newver-path" value="/data/assets/asset_001/v1.0.0"></div>
+                        <div class="form-group"><label class="form-label">变更日志</label><input class="form-input" id="compound-newver-changelog" value="初始版本"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="createCompoundVersion()">创建版本</button>
+                </div>
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3>版本查询</h3>
+                        <button class="btn btn-primary btn-sm" onclick="loadVersions()">查询</button>
+                    </div>
                     <div class="form-group"><label class="form-label">资产 ID</label><input class="form-input" id="compound-ver-asset" value="asset_001"></div>
-                    <button class="btn btn-primary" onclick="loadVersions()">查询版本</button>
-                    <div id="compound-versions-list" style="margin-top:16px"></div>
+                    <div id="compound-versions-list"></div>
                 </div>
             </div>
             <div id="compound-tab-compose" style="display:none">
                 <div class="card">
                     <h3 style="margin-bottom:16px">管道编排</h3>
-                    <button class="btn btn-primary" onclick="compoundPipeline()">执行示例管道</button>
+                    <div class="form-group"><label class="form-label">步骤 (JSON)</label><textarea class="form-textarea" id="compound-pipeline-steps" style="min-height:140px">[
+  {"instruction":"generate.creative","params":{"product_info":{"title":"测试"}},"output_key":"creative"},
+  {"instruction":"generate.storyboard","params":{"creative":"$creative"},"output_key":"storyboard"}
+]</textarea></div>
+                    <button class="btn btn-primary" onclick="compoundPipeline()">执行管道</button>
                     <div id="compound-compose-result" style="margin-top:16px"></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:16px">并行编排</h3>
+                    <div class="form-group"><label class="form-label">指令 (JSON)</label><textarea class="form-textarea" id="compound-parallel-ins" style="min-height:120px">[
+  {"instruction":"generate.creative","params":{"style":"viral"}},
+  {"instruction":"generate.creative","params":{"style":"elegant"}}
+]</textarea></div>
+                    <button class="btn btn-primary" onclick="compoundParallel()">执行并行</button>
+                    <div id="compound-parallel-result" style="margin-top:16px"></div>
                 </div>
             </div>
         </div>
@@ -437,28 +556,107 @@
 
         <!-- ========== 监控告警 ========== -->
         <div id="page-monitoring" class="page">
-            <h1 class="page-title">监控告警</h1>
+            <h1 class="page-title" data-i18n="nav.monitoring">监控告警</h1>
             <p class="page-desc">指标采集与告警管理</p>
+            <div class="card">
+                <h3 style="margin-bottom:16px">录入指标</h3>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">指标名</label>
+                        <select class="form-select" id="mon-metric-name">
+                            <option value="daily_videos">daily_videos</option>
+                            <option value="daily_assets">daily_assets</option>
+                            <option value="agent_success_rate">agent_success_rate</option>
+                            <option value="e2e_latency">e2e_latency</option>
+                            <option value="api_error_rate">api_error_rate</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label class="form-label">值</label><input class="form-input" id="mon-metric-value" type="number" value="0.95" step="0.01"></div>
+                </div>
+                <button class="btn btn-primary" onclick="recordMetric()">录入并评估</button>
+                <div id="mon-record-result" style="margin-top:16px"></div>
+            </div>
             <div class="grid-2">
                 <div class="card">
-                    <h3 style="margin-bottom:16px">活跃告警</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3>活跃告警</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="loadMonitoringAlerts()">刷新</button>
+                    </div>
                     <div id="monitoring-alerts"><div class="empty-state">加载中...</div></div>
                 </div>
                 <div class="card">
-                    <h3 style="margin-bottom:16px">告警规则</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3>告警规则</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateRuleForm()">+ 新建规则</button>
+                    </div>
                     <div id="monitoring-rules"><div class="empty-state">加载中...</div></div>
                 </div>
             </div>
             <div class="card">
-                <h3 style="margin-bottom:16px">监控仪表盘</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>监控仪表盘</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="loadMonitoringDashboard()">刷新</button>
+                </div>
                 <div id="monitoring-dashboard"><div class="empty-state">加载中...</div></div>
+            </div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <h3>告警历史</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="loadMonitoringHistory()">刷新</button>
+                </div>
+                <div id="monitoring-history" style="max-height:400px;overflow-y:auto"><div class="empty-state">点击刷新加载</div></div>
             </div>
         </div>
     </main>
 </div>
 
+<!-- 通用模态框 -->
+<div class="modal-mask" id="modal-mask">
+    <div class="modal">
+        <div class="modal-title" id="modal-title">标题</div>
+        <div id="modal-body"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" id="modal-confirm-btn">确定</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const API = window.location.origin.includes('8765') ? '/' : 'http://localhost:8765/';
+let _currentUser = null;
+let _currentSession = null;
+let _currentLang = 'zh-CN';
+let _abtestCurrentId = null;
+
+// i18n 文本字典
+const I18N = {
+    'zh-CN': {
+        'nav.dashboard':'工作台','nav.create':'新建创作','nav.runs':'创作历史','nav.scenes':'场景模板',
+        'nav.llm':'LLM 路由','nav.abtest':'A/B 测试','nav.auth':'认证管理','nav.webhooks':'Webhook',
+        'nav.tenants':'租户管理','nav.storage':'对象存储','nav.queue':'任务队列',
+        'nav.jnpf':'JNPF 表单','nav.compound':'复利系统','nav.health':'系统健康','nav.monitoring':'监控告警',
+        'common.create':'创建','common.cancel':'取消','common.confirm':'确定','common.refresh':'刷新',
+        'common.delete':'删除','common.edit':'编辑','common.view':'查看','common.loading':'加载中...'
+    },
+    'en-US': {
+        'nav.dashboard':'Dashboard','nav.create':'New Create','nav.runs':'History','nav.scenes':'Scenes',
+        'nav.llm':'LLM Router','nav.abtest':'A/B Test','nav.auth':'Auth','nav.webhooks':'Webhook',
+        'nav.tenants':'Tenants','nav.storage':'Storage','nav.queue':'Task Queue',
+        'nav.jnpf':'JNPF Form','nav.compound':'Compound','nav.health':'Health','nav.monitoring':'Monitoring',
+        'common.create':'Create','common.cancel':'Cancel','common.confirm':'Confirm','common.refresh':'Refresh',
+        'common.delete':'Delete','common.edit':'Edit','common.view':'View','common.loading':'Loading...'
+    },
+    'ja-JP': {
+        'nav.dashboard':'ダッシュボード','nav.create':'新規作成','nav.runs':'履歴','nav.scenes':'シーン',
+        'nav.llm':'LLM ルーター','nav.abtest':'A/B テスト','nav.auth':'認証','nav.webhooks':'Webhook',
+        'nav.tenants':'テナント','nav.storage':'ストレージ','nav.queue':'タスクキュー',
+        'nav.jnpf':'JNPF フォーム','nav.compound':'複利システム','nav.health':'ヘルス','nav.monitoring':'監視',
+        'common.create':'作成','common.cancel':'キャンセル','common.confirm':'確認','common.refresh':'更新',
+        'common.delete':'削除','common.edit':'編集','common.view':'表示','common.loading':'読込中...'
+    }
+};
+function t(key){return (I18N[_currentLang]||I18N['zh-CN'])[key]||key;}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');el.textContent=t(k);});}
 
 // ===== 通用 =====
 function toast(msg, type='success'){const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
@@ -470,54 +668,144 @@ if(name==='webhooks')loadWebhooks();if(name==='tenants')loadTenants();if(name===
 if(name==='queue')loadQueuePage();if(name==='jnpf')loadJnpfForm();if(name==='compound')loadCompoundTemplates();
 if(name==='monitoring')loadMonitoring();}
 function jsonView(obj){return '<div class="json-view">'+JSON.stringify(obj,null,2)+'</div>';}
-function setLang(lang){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');api('api/i18n/language',{method:'PUT',body:JSON.stringify({lang})}).then(()=>toast('语言已切换: '+lang));}
+function setLang(lang){_currentLang=lang;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));event && event.target && event.target.classList.add('active');api('api/i18n/language',{method:'PUT',body:JSON.stringify({lang})}).then(()=>{applyI18n();toast('语言已切换: '+lang);});}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+// 模态框
+function openModal(title, bodyHtml, onConfirm){document.getElementById('modal-title').textContent=title;document.getElementById('modal-body').innerHTML=bodyHtml;document.getElementById('modal-mask').classList.add('show');const btn=document.getElementById('modal-confirm-btn');btn.onclick=onConfirm||closeModal;}
+function closeModal(){document.getElementById('modal-mask').classList.remove('show');}
+function modalFieldValue(id){const el=document.getElementById(id);return el?el.value:'';}
 
 // ===== Dashboard =====
 async function loadDashboard(){
-    const health=await api('health');const llmStatus=await api('api/llm/status');
-    if(health){document.getElementById('stat-videos').textContent='0';document.getElementById('stat-assets').textContent='0';document.getElementById('stat-success').textContent='100%';}
+    const [health, llmStatus, runs, monDash] = await Promise.all([
+        api('health'), api('api/llm/status'), api('orchestrate'), api('api/monitoring/dashboard')
+    ]);
+    if(runs&&runs.runs){
+        const successCount=runs.runs.filter(r=>r.status==='success').length;
+        const total=runs.runs.length;
+        document.getElementById('stat-videos').textContent=successCount;
+        document.getElementById('stat-assets').textContent=total*6;
+        document.getElementById('stat-success').textContent=total>0?Math.round(successCount/total*100)+'%':'100%';
+    }
     if(llmStatus){document.getElementById('stat-llm').textContent=llmStatus.available_providers+'/'+llmStatus.total_providers;
         document.getElementById('llm-status-mini').innerHTML='<p><strong>策略:</strong> '+llmStatus.strategy+'</p><p><strong>可用:</strong> '+llmStatus.available_providers+'/'+llmStatus.total_providers+'</p><p><strong>熔断:</strong> '+llmStatus.broken_providers+'</p>';}
-    const runs=await api('orchestrate');
-    if(runs&&runs.runs){const c=document.getElementById('recent-runs');if(runs.runs.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div>';}else{c.innerHTML='<table class="table"><tbody>'+runs.runs.slice(0,5).map(r=>'<tr><td>'+r.run_id+'</td><td>'+r.workflow_type+'</td><td><span class="badge badge-'+(r.status==='success'?'success':r.status==='failed'?'failed':'running')+'">'+r.status+'</span></td></tr>').join('')+'</tbody></table>';}}
+    if(runs&&runs.runs){const c=document.getElementById('recent-runs');if(runs.runs.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>暂无运行记录</div>';}else{c.innerHTML='<table class="table"><tbody>'+runs.runs.slice(0,5).map(r=>'<tr><td>'+escapeHtml(r.run_id)+'</td><td>'+escapeHtml(r.workflow_type)+'</td><td><span class="badge badge-'+(r.status==='success'?'success':r.status==='failed'?'failed':'running')+'">'+escapeHtml(r.status)+'</span></td></tr>').join('')+'</tbody></table>';}}
 }
 // ===== 创作历史 =====
-async function loadRuns(){const data=await api('orchestrate');const tbody=document.getElementById('runs-table');if(!data||!data.runs||data.runs.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">暂无记录</td></tr>';return;}tbody.innerHTML=data.runs.map(r=>'<tr><td>'+r.run_id+'</td><td>'+r.workflow_type+'</td><td><span class="badge badge-'+(r.status==='success'?'success':r.status==='failed'?'failed':'running')+'">'+r.status+'</span></td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">'+r.input+'</td><td><button class="btn btn-secondary btn-sm" onclick="viewRun(\''+r.run_id+'\')">查看</button></td></tr>').join('');}
+async function loadRuns(){const data=await api('orchestrate');const tbody=document.getElementById('runs-table');if(!data||!data.runs||data.runs.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">暂无记录</td></tr>';return;}tbody.innerHTML=data.runs.map(r=>'<tr><td>'+escapeHtml(r.run_id)+'</td><td>'+escapeHtml(r.workflow_type)+'</td><td><span class="badge badge-'+(r.status==='success'?'success':r.status==='failed'?'failed':'running')+'">'+escapeHtml(r.status)+'</span></td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(r.input)+'</td><td><button class="btn btn-secondary btn-sm" onclick="viewRun(\''+r.run_id+'\')">查看</button></td></tr>').join('');}
 async function viewRun(runId){const data=await api('orchestrate/'+runId);if(!data)return;showPage('create',document.querySelectorAll('.nav-item')[1]);document.getElementById('progress-card').style.display='block';document.getElementById('progress-fill').style.width=data.status==='success'?'100%':'50%';document.getElementById('progress-text').textContent='状态: '+data.status;if(data.tasks)renderTimeline(data.tasks);}
 // ===== 创建工作流 =====
 async function createWorkflow(){const input=document.getElementById('input-value').value.trim();if(!input){toast('请输入商品信息','error');return;}const body={input_value:input,workflow:document.getElementById('workflow-type').value,num_scenes:parseInt(document.getElementById('num-scenes').value),aspect_ratio:document.getElementById('aspect-ratio').value,voice:document.getElementById('voice').value};document.getElementById('btn-create').disabled=true;document.getElementById('progress-card').style.display='block';document.getElementById('result-card').style.display='none';toast('工作流已启动');const result=await api('orchestrate/sync',{method:'POST',body:JSON.stringify(body)});document.getElementById('btn-create').disabled=false;if(result&&result.success){document.getElementById('progress-fill').style.width='100%';document.getElementById('progress-text').textContent='✅ 完成！';if(result.tasks_summary)renderTimeline(result.tasks_summary);if(result.artifacts)renderResult(result.artifacts);toast('创作完成！');}else{document.getElementById('progress-text').textContent='❌ 失败';toast('创作失败','error');}}
-function renderTimeline(tasks){document.getElementById('task-timeline').innerHTML=tasks.map(t=>'<div class="timeline-item"><div class="timeline-dot '+(t.status||'')+'"></div><div class="timeline-title">'+(t.agent||t.action||'')+'</div><div class="timeline-meta">'+(t.status||'')+'</div></div>').join('');}
-function renderResult(artifacts){document.getElementById('result-card').style.display='block';let html='';if(artifacts.video)html+='<p><strong>视频:</strong> '+artifacts.video.output_path+'</p>';if(artifacts.creative)html+='<p><strong>主题:</strong> '+artifacts.creative.theme+'</p>';document.getElementById('result-content').innerHTML=html||'<div class="empty-state">无产物</div>';}
+function renderTimeline(tasks){document.getElementById('task-timeline').innerHTML=tasks.map(t=>'<div class="timeline-item"><div class="timeline-dot '+(t.status||'')+'"></div><div class="timeline-title">'+escapeHtml(t.agent||t.action||'')+'</div><div class="timeline-meta">'+escapeHtml(t.status||'')+'</div></div>').join('');}
+function renderResult(artifacts){document.getElementById('result-card').style.display='block';let html='';if(artifacts.video)html+='<p><strong>视频:</strong> '+escapeHtml(artifacts.video.output_path)+'</p>';if(artifacts.creative)html+='<p><strong>主题:</strong> '+escapeHtml(artifacts.creative.theme)+'</p>';document.getElementById('result-content').innerHTML=html||'<div class="empty-state">无产物</div>';}
 // ===== 场景模板 =====
-async function loadScenes(){const data=await api('scenes');const grid=document.getElementById('scenes-grid');if(!data||!data.scenes){grid.innerHTML='<div class="empty-state">加载失败</div>';return;}grid.innerHTML=data.scenes.map(s=>'<div class="stat-card"><div style="font-size:24px;margin-bottom:8px">🎬</div><div style="font-weight:600;margin-bottom:4px">'+s.name+'</div><div style="color:var(--text-muted);font-size:13px">'+(s.description||'')+'</div></div>').join('');}
+async function loadScenes(){const data=await api('scenes');const grid=document.getElementById('scenes-grid');if(!data||!data.scenes){grid.innerHTML='<div class="empty-state">加载失败</div>';return;}grid.innerHTML=data.scenes.map(s=>'<div class="stat-card"><div style="font-size:24px;margin-bottom:8px">🎬</div><div style="font-weight:600;margin-bottom:4px">'+escapeHtml(s.name)+'</div><div style="color:var(--text-muted);font-size:13px">'+escapeHtml(s.description||'')+'</div></div>').join('');}
 // ===== 系统健康 =====
-async function loadHealth(){const data=await api('health');const card=document.getElementById('health-card');if(!data){card.innerHTML='<div class="empty-state">加载失败</div>';return;}card.innerHTML='<p style="margin-bottom:16px"><strong>状态:</strong> <span class="badge badge-success">'+data.status+'</span></p><p>服务: '+data.service+' v'+data.version+'</p>';}
+async function loadHealth(){const [h1,h2]=await Promise.all([api('health'),api('api/monitoring/health')]);const card=document.getElementById('health-card');if(!h1){card.innerHTML='<div class="empty-state">加载失败</div>';return;}let html='<p style="margin-bottom:16px"><strong>API 服务:</strong> <span class="badge badge-success">'+escapeHtml(h1.status)+'</span> '+escapeHtml(h1.service)+' v'+escapeHtml(h1.version)+'</p>';if(h2){html+='<p style="margin-bottom:16px"><strong>平台监控:</strong> <span class="badge badge-'+(h2.status==='healthy'?'success':'failed')+'">'+escapeHtml(h2.status||'unknown')+'</span></p>';if(h2.components){html+='<table class="table"><thead><tr><th>组件</th><th>状态</th></tr></thead><tbody>';for(const [k,v] of Object.entries(h2.components)){html+='<tr><td>'+escapeHtml(k)+'</td><td><span class="badge badge-'+(v.status==='healthy'?'success':'failed')+'">'+escapeHtml(v.status||'-')+'</span></td></tr>';}html+='</tbody></table>';}}card.innerHTML=html;}
 
 // ===== LLM 路由 =====
-async function loadLlmPage(){const status=await api('api/llm/status');const providers=await api('api/llm/providers');if(status){document.getElementById('llm-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">总提供商</div><div class="stat-value">'+status.total_providers+'</div></div><div class="stat-card"><div class="stat-label">可用</div><div class="stat-value success">'+status.available_providers+'</div></div><div class="stat-card"><div class="stat-label">熔断中</div><div class="stat-value '+(status.broken_providers>0?'error':'')+'">'+status.broken_providers+'</div></div><div class="stat-card"><div class="stat-label">策略</div><div class="stat-value" style="font-size:18px">'+status.strategy+'</div></div>';}if(providers){document.getElementById('llm-providers-list').innerHTML=providers.providers.map(p=>'<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between"><strong>'+p.name+'</strong><span class="badge '+(p.available?'badge-success':'badge-failed')+'">'+(p.available?'可用':'未配置')+'</span></div><div style="color:var(--text-muted);font-size:13px;margin-top:4px">模型: '+p.model+' · 调用: '+(p.call_count||0)+' · 成功率: '+((p.success_rate||1)*100).toFixed(0)+'%</div></div>').join('');}}
-async function llmTestGenerate(){const prompt=document.getElementById('llm-test-prompt').value.trim();if(!prompt){toast('请输入提示词','error');return;}document.getElementById('llm-test-result').innerHTML='<div class="empty-state">生成中...</div>';const result=await api('api/llm/generate',{method:'POST',body:JSON.stringify({user_prompt:prompt,purpose:document.getElementById('llm-test-purpose').value,system_prompt:'你是营销创意助手',max_tokens:500})});if(result&&result.text){document.getElementById('llm-test-result').innerHTML='<div class="json-view">'+result.text+'</div><p style="margin-top:8px;color:var(--text-muted);font-size:13px">提供商: '+result.provider_name+' · 模型: '+result.model+' · 耗时: '+result.latency_ms+'ms</p>';}else{document.getElementById('llm-test-result').innerHTML='<div class="empty-state">生成失败</div>';}}
-async function loadLlmUsage(){const data=await api('api/llm/usage');if(data&&data.stats){document.getElementById('llm-usage').innerHTML='<table class="table"><thead><tr><th>提供商</th><th>调用</th><th>成功</th><th>失败</th><th>成功率</th><th>平均延迟</th></tr></thead><tbody>'+Object.entries(data.stats).map(([k,v])=>'<tr><td>'+k+'</td><td>'+v.total_calls+'</td><td>'+v.success_calls+'</td><td>'+v.failed_calls+'</td><td>'+((v.success_rate||0)*100).toFixed(0)+'%</td><td>'+v.avg_latency_ms+'ms</td></tr>').join('')+'</tbody></table>';}else{document.getElementById('llm-usage').innerHTML='<div class="empty-state">暂无数据</div>';}}
+async function loadLlmPage(){const status=await api('api/llm/status');const providers=await api('api/llm/providers');if(status){document.getElementById('llm-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">总提供商</div><div class="stat-value">'+status.total_providers+'</div></div><div class="stat-card"><div class="stat-label">可用</div><div class="stat-value success">'+status.available_providers+'</div></div><div class="stat-card"><div class="stat-label">熔断中</div><div class="stat-value '+(status.broken_providers>0?'error':'')+'">'+status.broken_providers+'</div></div><div class="stat-card"><div class="stat-label">策略</div><div class="stat-value" style="font-size:18px">'+escapeHtml(status.strategy)+'</div></div>';}if(providers){document.getElementById('llm-providers-list').innerHTML=providers.providers.map(p=>'<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between"><strong>'+escapeHtml(p.name)+'</strong><span class="badge '+(p.available?'badge-success':'badge-failed')+'">'+(p.available?'可用':'未配置')+'</span></div><div style="color:var(--text-muted);font-size:13px;margin-top:4px">模型: '+escapeHtml(p.model)+' · 调用: '+(p.call_count||0)+' · 成功率: '+((p.success_rate||1)*100).toFixed(0)+'%</div></div>').join('');}}
+async function llmTestGenerate(){const prompt=document.getElementById('llm-test-prompt').value.trim();if(!prompt){toast('请输入提示词','error');return;}document.getElementById('llm-test-result').innerHTML='<div class="empty-state">生成中...</div>';const result=await api('api/llm/generate',{method:'POST',body:JSON.stringify({user_prompt:prompt,purpose:document.getElementById('llm-test-purpose').value,system_prompt:'你是营销创意助手',max_tokens:500})});if(result&&result.text){document.getElementById('llm-test-result').innerHTML='<div class="json-view">'+escapeHtml(result.text)+'</div><p style="margin-top:8px;color:var(--text-muted);font-size:13px">提供商: '+escapeHtml(result.provider_name)+' · 模型: '+escapeHtml(result.model)+' · 耗时: '+result.latency_ms+'ms</p>';}else{document.getElementById('llm-test-result').innerHTML='<div class="empty-state">生成失败</div>';}}
+async function loadLlmUsage(){const data=await api('api/llm/usage');if(data&&data.stats){document.getElementById('llm-usage').innerHTML='<table class="table"><thead><tr><th>提供商</th><th>调用</th><th>成功</th><th>失败</th><th>成功率</th><th>平均延迟</th></tr></thead><tbody>'+Object.entries(data.stats).map(([k,v])=>'<tr><td>'+escapeHtml(k)+'</td><td>'+(v.total_calls||0)+'</td><td>'+(v.success_calls||0)+'</td><td>'+(v.failed_calls||0)+'</td><td>'+((v.success_rate||0)*100).toFixed(0)+'%</td><td>'+(v.avg_latency_ms||0)+'ms</td></tr>').join('')+'</tbody></table>';}else{document.getElementById('llm-usage').innerHTML='<div class="empty-state">暂无数据</div>';}}
 // ===== AB 测试 =====
-async function loadAbtest(){const data=await api('api/abtest');const c=document.getElementById('abtest-list');if(!data||!data.experiments||data.experiments.length===0){c.innerHTML='<div class="empty-state">暂无实验</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>名称</th><th>状态</th><th>操作</th></tr></thead><tbody>'+data.experiments.map(e=>'<tr><td>'+e.experiment_id+'</td><td>'+e.name+'</td><td><span class="badge badge-muted">'+e.status+'</span></td><td><button class="btn btn-secondary btn-sm" onclick="viewAbtest(\''+e.experiment_id+'\')">查看</button></td></tr>').join('')+'</tbody></table>';}
-async function viewAbtest(id){const data=await api('api/abtest/'+id+'/analyze');const detail=document.getElementById('abtest-detail');detail.style.display='block';if(data){document.getElementById('abtest-detail-content').innerHTML=jsonView(data);}else{document.getElementById('abtest-detail-content').innerHTML='<div class="empty-state">无数据</div>';}}
-function showAbtestCreate(){toast('AB测试创建功能 - 请通过 API 创建','success');}
+async function loadAbtest(){const data=await api('api/abtest');const c=document.getElementById('abtest-list');if(!data||!data.experiments||data.experiments.length===0){c.innerHTML='<div class="empty-state">暂无实验，点击右上角新建</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>名称</th><th>状态</th><th>操作</th></tr></thead><tbody>'+data.experiments.map(e=>'<tr><td>'+escapeHtml(e.experiment_id)+'</td><td>'+escapeHtml(e.name)+'</td><td><span class="badge badge-muted">'+escapeHtml(e.status)+'</span></td><td><div class="actions"><button class="btn btn-secondary btn-sm" onclick="viewAbtest(\''+e.experiment_id+'\')">查看</button><button class="btn btn-primary btn-sm" onclick="runAbtestById(\''+e.experiment_id+'\')">运行</button></div></td></tr>').join('')+'</tbody></table>';}
+async function viewAbtest(id){_abtestCurrentId=id;const [detail,analyze]=await Promise.all([api('api/abtest/'+id),api('api/abtest/'+id+'/analyze')]);const detailEl=document.getElementById('abtest-detail');detailEl.style.display='block';let html='';if(detail&&detail.experiment){html+='<h4>实验信息</h4>'+jsonView(detail.experiment);}if(analyze){html+='<h4 style="margin-top:16px">分析结果</h4>'+jsonView(analyze);}document.getElementById('abtest-detail-content').innerHTML=html||'<div class="empty-state">无数据</div>';}
+function runAbtest(){if(_abtestCurrentId)runAbtestById(_abtestCurrentId);}
+async function runAbtestById(id){const result=await api('api/abtest/'+id+'/run',{method:'POST'});if(result){toast('实验已启动: '+result.status);viewAbtest(id);}}
+function showAbtestCreate(){
+    const body=`<div class="form-group"><label class="form-label">实验名称</label><input class="form-input" id="abtest-new-name" placeholder="如：运动鞋文案测试"></div>
+    <div class="form-group"><label class="form-label">商品输入</label><input class="form-input" id="abtest-new-product" value="Test Product"></div>
+    <div class="form-group"><label class="form-label">变体配置 (JSON)</label><textarea class="form-textarea" id="abtest-new-variants" style="min-height:120px">[{"name":"control","config":{"style":"default"}},{"name":"treatment","config":{"style":"viral"}}]</textarea></div>`;
+    openModal('新建 A/B 实验', body, async()=>{
+        const name=modalFieldValue('abtest-new-name');
+        const product=modalFieldValue('abtest-new-product');
+        let variants=[];try{variants=JSON.parse(modalFieldValue('abtest-new-variants'));}catch(e){toast('变体 JSON 格式错误','error');return;}
+        if(!name){toast('请填写实验名称','error');return;}
+        const result=await api('api/abtest',{method:'POST',body:JSON.stringify({name,product_input:product,variants_config:variants})});
+        if(result){toast('实验已创建: '+result.experiment_id);closeModal();loadAbtest();}
+    });
+}
+async function showAbtestMetricsForm(){
+    if(!_abtestCurrentId){toast('请先选择一个实验','error');return;}
+    const detail=await api('api/abtest/'+_abtestCurrentId);
+    if(!detail||!detail.experiment){toast('获取实验详情失败','error');return;}
+    const variants=detail.experiment.variants||[];
+    if(variants.length===0){toast('该实验无变体','error');return;}
+    const opts=variants.map(v=>'<option value="'+escapeHtml(v.variant_id)+'">'+escapeHtml(v.name||v.variant_id)+'</option>').join('');
+    const body=`<div class="form-group"><label class="form-label">变体</label><select class="form-select" id="abtest-metric-variant">${opts}</select></div>
+    <div class="form-group"><label class="form-label">指标 (JSON)</label><textarea class="form-textarea" id="abtest-metric-data" style="min-height:120px">{"views":1000,"likes":50,"shares":10,"conversions":5}</textarea></div>`;
+    openModal('录入变体指标 - '+_abtestCurrentId, body, async()=>{
+        const variantId=modalFieldValue('abtest-metric-variant');
+        let metrics={};try{metrics=JSON.parse(modalFieldValue('abtest-metric-data'));}catch(e){toast('指标 JSON 格式错误','error');return;}
+        const result=await api('api/abtest/'+_abtestCurrentId+'/metrics/'+variantId,{method:'POST',body:JSON.stringify(metrics)});
+        if(result&&result.success){toast('指标已录入');closeModal();viewAbtest(_abtestCurrentId);}
+    });
+}
 // ===== 认证 =====
-async function doLogin(){const username=document.getElementById('login-username').value.trim();if(!username){toast('请输入用户名','error');return;}const result=await api('api/auth/login',{method:'POST',body:JSON.stringify({username})});if(result&&result.token){document.getElementById('login-result').innerHTML='<div class="json-view">登录成功!\ntoken: '+result.token.substring(0,30)+'...\n用户: '+result.user.username+' ('+result.user.role+')</div>';document.getElementById('user-avatar').textContent=result.user.username[0].toUpperCase();toast('登录成功');loadAuthUsers();}else{document.getElementById('login-result').innerHTML='<div class="empty-state">登录失败</div>';}}
+async function doLogin(){const username=document.getElementById('login-username').value.trim();if(!username){toast('请输入用户名','error');return;}const result=await api('api/auth/login',{method:'POST',body:JSON.stringify({username})});if(result&&result.token){_currentUser=result.user;_currentSession=result;document.getElementById('login-result').innerHTML='<div class="json-view">登录成功!\ntoken: '+result.token.substring(0,30)+'...\n用户: '+escapeHtml(result.user.username)+' ('+escapeHtml(result.user.role)+')</div>';document.getElementById('user-avatar').textContent=result.user.username[0].toUpperCase();document.getElementById('auth-session-status').textContent=result.user.username;toast('登录成功');loadAuthUsers();}else{document.getElementById('login-result').innerHTML='<div class="empty-state">登录失败</div>';}}
+async function refreshMyToken(){if(!_currentSession){toast('请先登录','error');return;}const result=await api('api/auth/refresh',{method:'POST',body:JSON.stringify({refresh_token:_currentSession.refresh_token})});if(result&&result.token){_currentSession.token=result.token;_currentSession.refresh_token=result.refresh_token;toast('令牌已刷新');}else{toast('刷新失败','error');}}
+async function doLogout(){if(!_currentSession){toast('未登录','error');return;}const result=await api('api/auth/logout',{method:'POST',body:JSON.stringify({session_id:_currentSession.session_id})});if(result&&result.success){_currentUser=null;_currentSession=null;document.getElementById('auth-session-status').textContent='未登录';document.getElementById('user-avatar').textContent='G';document.getElementById('login-result').innerHTML='';toast('已登出');}}
 async function createUser(){const body={username:document.getElementById('new-username').value,email:document.getElementById('new-email').value,tenant_id:document.getElementById('new-tenant').value,role:document.getElementById('new-role').value};if(!body.username||!body.email){toast('请填写用户名和邮箱','error');return;}const result=await api('api/auth/users',{method:'POST',body:JSON.stringify(body)});if(result){toast('用户创建: '+result.username);loadAuthUsers();}}
-async function loadAuthUsers(){const data=await api('api/auth/users');const c=document.getElementById('auth-users-list');if(!data||!data.users||data.users.length===0){c.innerHTML='<div class="empty-state">暂无用户</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>租户</th><th>SSO</th></tr></thead><tbody>'+data.users.map(u=>'<tr><td>'+u.username+'</td><td>'+u.email+'</td><td><span class="badge badge-muted">'+u.role+'</span></td><td>'+u.tenant_id+'</td><td>'+(u.sso_provider||'-')+'</td></tr>').join('')+'</tbody></table>';}
+async function loadAuthUsers(){const data=await api('api/auth/users');const c=document.getElementById('auth-users-list');if(!data||!data.users||data.users.length===0){c.innerHTML='<div class="empty-state">暂无用户</div>';document.getElementById('auth-user-count').textContent='0';return;}document.getElementById('auth-user-count').textContent=data.users.length;c.innerHTML='<table class="table"><thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>租户</th><th>SSO</th><th>操作</th></tr></thead><tbody>'+data.users.map(u=>'<tr><td>'+escapeHtml(u.username)+'</td><td>'+escapeHtml(u.email)+'</td><td><span class="badge badge-muted">'+escapeHtml(u.role)+'</span></td><td>'+escapeHtml(u.tenant_id)+'</td><td>'+(u.sso_provider||'-')+'</td><td><div class="actions"><button class="btn btn-secondary btn-sm" onclick="viewUserPermissions(\''+u.user_id+'\')">权限</button><button class="btn btn-link" onclick="changeUserRole(\''+u.user_id+'\',\''+escapeHtml(u.role)+'\')">改角色</button></div></td></tr>').join('')+'</tbody></table>';}
+async function viewUserPermissions(userId){const data=await api('api/auth/permissions/'+userId);if(data){openModal('用户权限 - '+userId,jsonView(data),closeModal);}}
+function changeUserRole(userId,currentRole){
+    const body=`<div class="form-group"><label class="form-label">新角色</label><select class="form-select" id="role-new-role"><option value="viewer">viewer</option><option value="creator">creator</option><option value="manager">manager</option><option value="admin">admin</option></select></div>`;
+    openModal('修改用户角色 - '+userId, body, async()=>{
+        const role=modalFieldValue('role-new-role');
+        const result=await api('api/auth/users/'+userId+'/role',{method:'PUT',body:JSON.stringify({role})});
+        if(result){toast('角色已更新: '+role);closeModal();loadAuthUsers();}
+    });
+}
+async function getSsoAuthorizeUrl(){
+    const tenantId=(_currentUser&&_currentUser.tenant_id)||'default';
+    const result=await api('api/auth/sso/authorize-url/'+tenantId);
+    if(result&&result.authorize_url){
+        openModal('SSO 授权','<p style="margin-bottom:12px">点击下方链接完成 SSO 授权：</p><a href="'+escapeHtml(result.authorize_url)+'" target="_blank" style="color:var(--primary);word-break:break-all">'+escapeHtml(result.authorize_url)+'</a><p style="margin-top:12px;color:var(--text-muted);font-size:13px">state: '+escapeHtml(result.state||'')+'</p>',closeModal);
+    }else{
+        toast('未配置 SSO 或获取失败','error');
+    }
+}
 // ===== Webhook =====
 async function createWebhook(){const body={tenant_id:document.getElementById('wh-tenant').value,url:document.getElementById('wh-url').value,events:document.getElementById('wh-events').value.split(',').map(s=>s.trim())};if(!body.url){toast('请输入回调URL','error');return;}const result=await api('api/webhooks',{method:'POST',body:JSON.stringify(body)});if(result){toast('订阅创建: '+result.subscription_id);loadWebhooks();}}
 async function publishWebhook(){const eventType=document.getElementById('wh-publish-event').value;let payload={};try{payload=JSON.parse(document.getElementById('wh-payload').value);}catch(e){toast('JSON格式错误','error');return;}const result=await api('api/webhooks/publish',{method:'POST',body:JSON.stringify({event_type:eventType,payload:payload})});if(result)toast('事件已发布: '+result.count+' 个投递');loadWebhooks();}
-async function loadWebhooks(){const data=await api('api/webhooks');const c=document.getElementById('wh-list');if(!data||!data.subscriptions||data.subscriptions.length===0){c.innerHTML='<div class="empty-state">暂无订阅</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>URL</th><th>事件</th><th>状态</th><th>操作</th></tr></thead><tbody>'+data.subscriptions.map(s=>'<tr><td>'+s.subscription_id.substring(0,16)+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">'+s.url+'</td><td>'+s.events.join(', ')+'</td><td><span class="badge '+(s.active?'badge-success':'badge-failed')+'">'+(s.active?'活跃':'停用')+'</span></td><td><button class="btn btn-danger btn-sm" onclick="deleteWebhook(\''+s.subscription_id+'\')">删除</button></td></tr>').join('')+'</tbody></table>';}
+async function loadWebhooks(){const data=await api('api/webhooks');const c=document.getElementById('wh-list');if(!data||!data.subscriptions||data.subscriptions.length===0){c.innerHTML='<div class="empty-state">暂无订阅</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>URL</th><th>事件</th><th>状态</th><th>操作</th></tr></thead><tbody>'+data.subscriptions.map(s=>'<tr><td>'+escapeHtml(s.subscription_id.substring(0,16))+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(s.url)+'</td><td>'+escapeHtml(s.events.join(', '))+'</td><td><span class="badge '+(s.active?'badge-success':'badge-failed')+'">'+(s.active?'活跃':'停用')+'</span></td><td><button class="btn btn-danger btn-sm" onclick="deleteWebhook(\''+s.subscription_id+'\')">删除</button></td></tr>').join('')+'</tbody></table>';}
 async function deleteWebhook(id){const result=await api('api/webhooks/'+id,{method:'DELETE'});if(result){toast('已删除');loadWebhooks();}}
+async function loadWhDeliveries(){const data=await api('api/webhooks/deliveries');const c=document.getElementById('wh-deliveries');if(!data||!data.deliveries||data.deliveries.length===0){c.innerHTML='<div class="empty-state">暂无投递记录</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>事件</th><th>状态</th><th>尝试</th><th>操作</th></tr></thead><tbody>'+data.deliveries.slice(0,20).map(d=>'<tr><td style="font-family:monospace;font-size:12px">'+escapeHtml(d.delivery_id.substring(0,12))+'</td><td>'+escapeHtml(d.event_type)+'</td><td><span class="badge badge-'+(d.status==='success'?'success':d.status==='dead'?'failed':'warning')+'">'+escapeHtml(d.status)+'</span></td><td>'+d.attempt+'</td><td><button class="btn btn-secondary btn-sm" onclick="replayDelivery(\''+d.delivery_id+'\')" '+(d.status!=='dead'?'disabled':'')+'>重放</button></td></tr>').join('')+'</tbody></table>';}
+async function loadWhDeadLetters(){const data=await api('api/webhooks/dead-letters');const c=document.getElementById('wh-dead-letters');if(!data||!data.dead_letters||data.dead_letters.length===0){c.innerHTML='<div class="empty-state">无死信</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>ID</th><th>事件</th><th>错误</th><th>操作</th></tr></thead><tbody>'+data.dead_letters.slice(0,20).map(d=>'<tr><td style="font-family:monospace;font-size:12px">'+escapeHtml(d.delivery_id.substring(0,12))+'</td><td>'+escapeHtml(d.event_type)+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(d.error)+'</td><td><button class="btn btn-primary btn-sm" onclick="replayDelivery(\''+d.delivery_id+'\')">重放</button></td></tr>').join('')+'</tbody></table>';}
+async function replayDelivery(id){const result=await api('api/webhooks/deliveries/'+id+'/replay',{method:'POST'});if(result){toast('已重放');loadWhDeadLetters();loadWhDeliveries();}}
 // ===== 租户 =====
-async function loadTenants(){const data=await api('api/tenants');const c=document.getElementById('tenant-list');if(!data||!data.tenants||data.tenants.length===0){c.innerHTML='<div class="empty-state">暂无租户</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>名称</th><th>套餐</th><th>API Key</th><th>操作</th></tr></thead><tbody>'+data.tenants.map(t=>'<tr><td>'+t.name+'</td><td><span class="badge badge-muted">'+t.plan+'</span></td><td style="font-family:monospace;font-size:12px">'+(t.api_key||'').substring(0,16)+'...</td><td><button class="btn btn-secondary btn-sm" onclick="viewTenantQuota(\''+t.tenant_id+'\')">配额</button></td></tr>').join('')+'</tbody></table>';}
-async function viewTenantQuota(id){const data=await api('api/tenants/'+id+'/quota');if(data)toast('配额: '+JSON.stringify(data.quotas));}
-function showTenantCreate(){const name=prompt('租户名称:');if(!name)return;const plan=prompt('套餐(free/pro/enterprise):','free');api('api/tenants',{method:'POST',body:JSON.stringify({name,plan})}).then(()=>{toast('租户创建成功');loadTenants();});}
+async function loadTenants(){const data=await api('api/tenants');const c=document.getElementById('tenant-list');if(!data||!data.tenants||data.tenants.length===0){c.innerHTML='<div class="empty-state">暂无租户</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>名称</th><th>套餐</th><th>API Key</th><th>操作</th></tr></thead><tbody>'+data.tenants.map(t=>'<tr><td>'+escapeHtml(t.name)+'</td><td><span class="badge badge-muted">'+escapeHtml(t.plan)+'</span></td><td style="font-family:monospace;font-size:12px">'+escapeHtml((t.api_key||'').substring(0,16))+'...</td><td><div class="actions"><button class="btn btn-secondary btn-sm" onclick="viewTenantQuota(\''+t.tenant_id+'\')">配额</button><button class="btn btn-link" onclick="editTenant(\''+t.tenant_id+'\',\''+escapeHtml(t.name)+'\',\''+escapeHtml(t.plan)+'\')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteTenant(\''+t.tenant_id+'\')">删除</button></div></td></tr>').join('')+'</tbody></table>';}
+async function viewTenantQuota(id){const data=await api('api/tenants/'+id+'/quota');if(data)openModal('租户配额 - '+id,jsonView(data.quotas),closeModal);}
+function showTenantCreate(){const body=`<div class="form-group"><label class="form-label">租户名称</label><input class="form-input" id="tenant-new-name"></div><div class="form-group"><label class="form-label">套餐</label><select class="form-select" id="tenant-new-plan"><option value="free">free</option><option value="pro">pro</option><option value="enterprise">enterprise</option></select></div>`;openModal('新建租户',body,async()=>{const name=modalFieldValue('tenant-new-name');const plan=modalFieldValue('tenant-new-plan');if(!name){toast('请填写名称','error');return;}const result=await api('api/tenants',{method:'POST',body:JSON.stringify({name,plan})});if(result){toast('租户创建成功');closeModal();loadTenants();}});}
+function editTenant(id,name,plan){const body=`<div class="form-group"><label class="form-label">名称</label><input class="form-input" id="tenant-edit-name" value="${escapeHtml(name)}"></div><div class="form-group"><label class="form-label">套餐</label><select class="form-select" id="tenant-edit-plan"><option value="free" ${plan==='free'?'selected':''}>free</option><option value="pro" ${plan==='pro'?'selected':''}>pro</option><option value="enterprise" ${plan==='enterprise'?'selected':''}>enterprise</option></select></div>`;openModal('编辑租户 - '+id,body,async()=>{const name=modalFieldValue('tenant-edit-name');const plan=modalFieldValue('tenant-edit-plan');const result=await api('api/tenants/'+id,{method:'PUT',body:JSON.stringify({name,plan})});if(result){toast('租户已更新');closeModal();loadTenants();}});}
+async function deleteTenant(id){if(!confirm('确定删除租户 '+id+'?'))return;const result=await api('api/tenants/'+id,{method:'DELETE'});if(result){toast('已删除');loadTenants();}}
 // ===== 存储 =====
-async function loadStorage(){const stats=await api('api/storage/stats');const objs=await api('api/storage/objects');if(stats){document.getElementById('storage-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">总对象数</div><div class="stat-value">'+(stats.total_objects||0)+'</div></div><div class="stat-card"><div class="stat-label">总大小</div><div class="stat-value">'+((stats.total_size||0)/1024).toFixed(1)+'KB</div></div><div class="stat-card"><div class="stat-label">后端</div><div class="stat-value" style="font-size:18px">'+(stats.backend||'-')+'</div></div>';}const c=document.getElementById('storage-objects');if(!objs||!objs.objects||objs.objects.length===0){c.innerHTML='<div class="empty-state">暂无对象</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>Key</th><th>大小</th><th>分类</th></tr></thead><tbody>'+objs.objects.map(o=>'<tr><td style="font-family:monospace;font-size:12px">'+o.key+'</td><td>'+((o.size||0)/1024).toFixed(1)+'KB</td><td>'+o.category+'</td></tr>').join('')+'</tbody></table>';}
+async function loadStorage(){const [stats,objs]=await Promise.all([api('api/storage/stats'),api('api/storage/objects')]);if(stats){document.getElementById('storage-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">总对象数</div><div class="stat-value">'+(stats.total_objects||0)+'</div></div><div class="stat-card"><div class="stat-label">总大小</div><div class="stat-value">'+((stats.total_size||0)/1024).toFixed(1)+'KB</div></div><div class="stat-card"><div class="stat-label">后端</div><div class="stat-value" style="font-size:18px">'+escapeHtml(stats.backend||'-')+'</div></div>';}const c=document.getElementById('storage-objects');if(!objs||!objs.objects||objs.objects.length===0){c.innerHTML='<div class="empty-state">暂无对象</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>Key</th><th>大小</th><th>分类</th><th>操作</th></tr></thead><tbody>'+objs.objects.map(o=>'<tr><td style="font-family:monospace;font-size:12px">'+escapeHtml(o.key)+'</td><td>'+((o.size||0)/1024).toFixed(1)+'KB</td><td>'+escapeHtml(o.category)+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteStorageObject(\''+escapeHtml(o.key)+'\')">删除</button></td></tr>').join('')+'</tbody></table>';}
+async function deleteStorageObject(key){if(!confirm('确定删除对象?'))return;const result=await api('api/storage/objects/'+key,{method:'DELETE'});if(result){toast('已删除');loadStorage();}}
+async function uploadStorageObject(){
+    const fileInput=document.getElementById('storage-upload-file');
+    if(!fileInput||!fileInput.files||fileInput.files.length===0){toast('请选择文件','error');return;}
+    const file=fileInput.files[0];
+    const category=document.getElementById('storage-upload-category').value||'general';
+    const tenantId=document.getElementById('storage-upload-tenant').value||'default';
+    const formData=new FormData();
+    formData.append('file',file);
+    formData.append('category',category);
+    formData.append('tenant_id',tenantId);
+    try{
+        const resp=await fetch(API+'api/storage/objects/upload',{method:'POST',body:formData});
+        if(!resp.ok){const e=await resp.json().catch(()=>({detail:resp.statusText}));throw new Error(e.detail||'上传失败');}
+        const result=await resp.json();
+        toast('上传成功: '+(result.remote_key||result.key||''));
+        fileInput.value='';
+        loadStorage();
+    }catch(e){toast('上传: '+e.message,'error');}
+}
 // ===== 任务队列 =====
-async function loadQueuePage(){const data=await api('api/queue/tasks');if(data){document.getElementById('queue-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">队列大小</div><div class="stat-value">'+data.queue_size+'</div></div><div class="stat-card"><div class="stat-label">总任务</div><div class="stat-value">'+(data.tasks||[]).length+'</div></div>';}const c=document.getElementById('queue-task-list');if(!data||!data.tasks||data.tasks.length===0){c.innerHTML='<div class="empty-state">暂无任务</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>任务ID</th><th>函数</th><th>状态</th><th>重试</th></tr></thead><tbody>'+data.tasks.map(t=>'<tr><td style="font-family:monospace;font-size:12px">'+t.task_id.substring(0,16)+'</td><td>'+t.func_name+'</td><td><span class="badge badge-muted">'+t.state+'</span></td><td>'+t.retries+'</td></tr>').join('')+'</tbody></table>';}
+async function loadQueuePage(){const data=await api('api/queue/tasks');if(data){document.getElementById('queue-stats-grid').innerHTML='<div class="stat-card"><div class="stat-label">队列大小</div><div class="stat-value">'+data.queue_size+'</div></div><div class="stat-card"><div class="stat-label">总任务</div><div class="stat-value">'+(data.tasks||[]).length+'</div></div>';}const c=document.getElementById('queue-task-list');if(!data||!data.tasks||data.tasks.length===0){c.innerHTML='<div class="empty-state">暂无任务</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>任务ID</th><th>函数</th><th>状态</th><th>重试</th><th>操作</th></tr></thead><tbody>'+data.tasks.map(t=>'<tr><td style="font-family:monospace;font-size:12px">'+escapeHtml(t.task_id.substring(0,16))+'</td><td>'+escapeHtml(t.func_name)+'</td><td><span class="badge badge-muted">'+escapeHtml(t.state)+'</span></td><td>'+t.retries+'</td><td><button class="btn btn-link" onclick="viewTaskResult(\''+t.task_id+'\')">结果</button></td></tr>').join('')+'</tbody></table>';}
+async function viewTaskResult(id){const result=await api('api/queue/tasks/'+id+'/result');if(result)openModal('任务结果 - '+id,jsonView(result),closeModal);else toast('结果不存在或任务未完成','error');}
+async function submitQueueTask(){let args=[];try{args=JSON.parse(document.getElementById('queue-task-args').value);}catch(e){toast('参数 JSON 格式错误','error');return;}const body={func_name:document.getElementById('queue-task-func').value,args:args,name:document.getElementById('queue-task-name').value,priority:parseInt(document.getElementById('queue-task-priority').value),tenant_id:document.getElementById('queue-task-tenant').value};if(!body.func_name){toast('请填写函数名','error');return;}const result=await api('api/queue/tasks',{method:'POST',body:JSON.stringify(body)});if(result){toast('任务已提交: '+result.task_id);loadQueuePage();}}
 async function loadQueueTasks(){loadQueuePage();}
 async function startWorkers(n){await api('api/queue/workers/start?num_workers='+n,{method:'POST'});toast('Worker已启动');}
 async function stopWorkers(){await api('api/queue/workers/stop',{method:'POST'});toast('Worker已停止');}
@@ -526,19 +814,117 @@ async function loadJnpfForm(){const data=await api('api/jnpf/form-schema');if(da
 async function jnpfValidateForm(){const data={input_value:document.getElementById('jnpf-validate-input').value,workflow:document.getElementById('jnpf-validate-wf').value,num_scenes:parseInt(document.getElementById('jnpf-validate-scenes').value)};const result=await api('api/jnpf/form-validate',{method:'POST',body:JSON.stringify({data})});if(result){document.getElementById('jnpf-validate-result').innerHTML='<p><span class="badge '+(result.valid?'badge-success':'badge-failed')+'">'+(result.valid?'校验通过':'校验失败')+'</span></p>'+jsonView(result.errors||{});}}
 async function jnpfEvalRules(){const data={workflow:document.getElementById('jnpf-validate-wf').value};const result=await api('api/jnpf/form-rules',{method:'POST',body:JSON.stringify({data})});if(result){document.getElementById('jnpf-validate-result').innerHTML=jsonView(result);}}
 function switchJnpfTab(tab,el){document.querySelectorAll('#page-jnpf .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('jnpf-tab-form').style.display=tab==='form'?'block':'none';document.getElementById('jnpf-tab-flow').style.display=tab==='flow'?'block':'none';if(tab==='flow')loadJnpfFlow();}
-async function loadJnpfFlow(){const data=await api('api/jnpf/workflow-definition');if(data){document.getElementById('jnpf-flow-def').innerHTML='<table class="table"><thead><tr><th>节点</th><th>类型</th><th>名称</th><th>Agent</th></tr></thead><tbody>'+data.nodes.map(n=>'<tr><td>'+n.node_id+'</td><td><span class="badge badge-muted">'+n.node_type+'</span></td><td>'+n.name+'</td><td>'+(n.agent||'-')+'</td></tr>').join('')+'</tbody></table>';}}
-async function jnpfRunFlow(){let ctx={};try{ctx=JSON.parse(document.getElementById('jnpf-flow-ctx').value);}catch(e){toast('JSON格式错误','error');return;}const result=await api('api/jnpf/workflow-run',{method:'POST',body:JSON.stringify({context:ctx})});if(result){document.getElementById('jnpf-flow-result').innerHTML='<p><span class="badge '+(result.status==='completed'?'badge-success':'badge-failed')+'">'+result.status+'</span></p>'+jsonView(result);}}
+async function loadJnpfFlow(){const data=await api('api/jnpf/workflow-definition');if(data){document.getElementById('jnpf-flow-def').innerHTML='<table class="table"><thead><tr><th>节点</th><th>类型</th><th>名称</th><th>Agent</th></tr></thead><tbody>'+data.nodes.map(n=>'<tr><td>'+escapeHtml(n.node_id)+'</td><td><span class="badge badge-muted">'+escapeHtml(n.node_type)+'</span></td><td>'+escapeHtml(n.name)+'</td><td>'+escapeHtml(n.agent||'-')+'</td></tr>').join('')+'</tbody></table>';}}
+async function jnpfRunFlow(){let ctx={};try{ctx=JSON.parse(document.getElementById('jnpf-flow-ctx').value);}catch(e){toast('JSON格式错误','error');return;}const result=await api('api/jnpf/workflow-run',{method:'POST',body:JSON.stringify({context:ctx})});if(result){document.getElementById('jnpf-flow-result').innerHTML='<p><span class="badge '+(result.status==='completed'?'badge-success':'badge-failed')+'">'+escapeHtml(result.status)+'</span></p>'+jsonView(result);}}
 // ===== 复利系统 =====
-async function loadCompoundTemplates(){const data=await api('api/compound/templates');const c=document.getElementById('compound-templates');if(!data||!data.templates||data.templates.length===0){c.innerHTML='<div class="empty-state">暂无模板，<button class="btn btn-primary btn-sm" onclick="initCompoundDefaults()">初始化默认模板</button></div>';return;}c.innerHTML='<table class="table"><thead><tr><th>名称</th><th>类型</th><th>使用次数</th><th>父模板</th></tr></thead><tbody>'+data.templates.map(t=>'<tr><td>'+t.name+'</td><td>'+t.asset_type+'</td><td>'+t.use_count+'</td><td>'+(t.parent_template||'-')+'</td></tr>').join('')+'</tbody></table>';}
-async function initCompoundDefaults(){toast('请通过 API 初始化','success');}
+async function loadCompoundTemplates(){const data=await api('api/compound/templates');const c=document.getElementById('compound-templates');if(!data||!data.templates||data.templates.length===0){c.innerHTML='<div class="empty-state">暂无模板，点击右上角"初始化默认模板"</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>名称</th><th>类型</th><th>使用次数</th><th>父模板</th><th>操作</th></tr></thead><tbody>'+data.templates.map(t=>'<tr><td>'+escapeHtml(t.name)+'</td><td>'+escapeHtml(t.asset_type)+'</td><td>'+t.use_count+'</td><td>'+(t.parent_template||'-')+'</td><td><button class="btn btn-link" onclick="instantiateCompoundTpl(\''+t.template_id+'\')">实例化</button></td></tr>').join('')+'</tbody></table>';}
+async function initCompoundDefaults(){const result=await api('api/compound/templates/init-defaults',{method:'POST'});if(result){toast('默认模板已初始化: '+result.templates.length+' 个');loadCompoundTemplates();}}
+async function instantiateCompoundTpl(id){
+    const body=`<div class="form-group"><label class="form-label">参数 (JSON)</label><textarea class="form-textarea" id="compound-inst-params" style="min-height:100px">{}</textarea></div>`;
+    openModal('实例化模板 - '+id, body, async()=>{
+        let params={};try{params=JSON.parse(modalFieldValue('compound-inst-params'));}catch(e){toast('JSON 格式错误','error');return;}
+        const result=await api('api/compound/templates/instantiate',{method:'POST',body:JSON.stringify({template_id:id,params})});
+        if(result){openModal('实例化结果',jsonView(result),closeModal);}
+    });
+}
+function showCompoundTplCreate(){
+    const body=`<div class="form-group"><label class="form-label">名称</label><input class="form-input" id="ctpl-name"></div>
+    <div class="form-group"><label class="form-label">描述</label><input class="form-input" id="ctpl-desc"></div>
+    <div class="form-group"><label class="form-label">类型</label><input class="form-input" id="ctpl-type" value="template"></div>
+    <div class="form-group"><label class="form-label">内容 (JSON)</label><textarea class="form-textarea" id="ctpl-content" style="min-height:120px">{"fields":[{"name":"title","type":"string"}]}</textarea></div>`;
+    openModal('创建模板', body, async()=>{
+        const name=modalFieldValue('ctpl-name');if(!name){toast('请填写名称','error');return;}
+        let content={};try{content=JSON.parse(modalFieldValue('ctpl-content'));}catch(e){toast('内容 JSON 格式错误','error');return;}
+        const result=await api('api/compound/templates',{method:'POST',body:JSON.stringify({name,description:modalFieldValue('ctpl-desc'),asset_type:modalFieldValue('ctpl-type'),content})});
+        if(result){toast('模板已创建: '+result.template_id);closeModal();loadCompoundTemplates();}
+    });
+}
+async function createCompoundVersion(){const body={asset_id:document.getElementById('compound-newver-asset').value,version:document.getElementById('compound-newver-version').value,path:document.getElementById('compound-newver-path').value,changelog:document.getElementById('compound-newver-changelog').value};if(!body.asset_id||!body.version||!body.path){toast('请填写完整','error');return;}const result=await api('api/compound/versions',{method:'POST',body:JSON.stringify(body)});if(result){toast('版本已创建: '+result.version_id);loadVersions();}}
 async function loadVersions(){const id=document.getElementById('compound-ver-asset').value;const data=await api('api/compound/versions/'+id);if(data){document.getElementById('compound-versions-list').innerHTML=jsonView(data);}}
-async function compoundPipeline(){const result=await api('api/compound/compose/pipeline',{method:'POST',body:JSON.stringify({steps:[{instruction:'generate.creative',params:{product_info:{title:'测试'}},output_key:'creative'}]})});if(result){document.getElementById('compound-compose-result').innerHTML=jsonView(result);}}
+async function compoundPipeline(){let steps=[];try{steps=JSON.parse(document.getElementById('compound-pipeline-steps').value);}catch(e){toast('JSON 格式错误','error');return;}const result=await api('api/compound/compose/pipeline',{method:'POST',body:JSON.stringify({steps})});if(result){document.getElementById('compound-compose-result').innerHTML=jsonView(result);}}
+async function compoundParallel(){let ins=[];try{ins=JSON.parse(document.getElementById('compound-parallel-ins').value);}catch(e){toast('JSON 格式错误','error');return;}const result=await api('api/compound/compose/parallel',{method:'POST',body:JSON.stringify({instructions:ins})});if(result){document.getElementById('compound-parallel-result').innerHTML=jsonView(result);}}
 function switchCompoundTab(tab,el){document.querySelectorAll('#page-compound .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['templates','versions','compose'].forEach(t=>{document.getElementById('compound-tab-'+t).style.display=t===tab?'block':'none';});}
 // ===== 监控 =====
-async function loadMonitoring(){const alerts=await api('api/monitoring/alerts');const rules=await api('api/monitoring/rules');const dash=await api('api/monitoring/dashboard');if(alerts){const c=document.getElementById('monitoring-alerts');if(!alerts.alerts||alerts.alerts.length===0){c.innerHTML='<div class="empty-state">无活跃告警</div>';}else{c.innerHTML=alerts.alerts.map(a=>'<div style="padding:12px 0;border-bottom:1px solid var(--border)"><strong>'+a.rule_name+'</strong><span class="badge badge-failed">'+a.severity+'</span></div>').join('');}}if(rules){document.getElementById('monitoring-rules').innerHTML='<table class="table"><tbody>'+rules.rules.map(r=>'<tr><td>'+r.name+'</td><td><span class="badge badge-muted">'+r.severity+'</span></td></tr>').join('')+'</tbody></table>';}if(dash){document.getElementById('monitoring-dashboard').innerHTML=jsonView(dash);}}
+async function loadMonitoring(){loadMonitoringAlerts();loadMonitoringDashboard();const rules=await api('api/monitoring/rules');if(rules){document.getElementById('monitoring-rules').innerHTML='<table class="table"><tbody>'+rules.rules.map(r=>'<tr><td>'+escapeHtml(r.name)+'</td><td><span class="badge badge-'+(r.severity==='critical'?'failed':r.severity==='warning'?'warning':'muted')+'">'+escapeHtml(r.severity)+'</span></td></tr>').join('')+'</tbody></table>';}}
+async function loadMonitoringAlerts(){const data=await api('api/monitoring/alerts');const c=document.getElementById('monitoring-alerts');if(!data||!data.alerts||data.alerts.length===0){c.innerHTML='<div class="empty-state">无活跃告警</div>';return;}c.innerHTML=data.alerts.map(a=>'<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;align-items:center"><strong>'+escapeHtml(a.rule_name)+'</strong><div class="actions"><span class="badge badge-'+(a.severity==='critical'?'failed':'warning')+'">'+escapeHtml(a.severity)+'</span><button class="btn btn-secondary btn-sm" onclick="ackAlert(\''+escapeHtml(a.rule_name)+'\')">ACK</button></div></div><div style="color:var(--text-muted);font-size:13px;margin-top:4px">'+escapeHtml(a.message||a.description||'')+'</div></div>').join('');}
+async function loadMonitoringDashboard(){const data=await api('api/monitoring/dashboard');if(data){document.getElementById('monitoring-dashboard').innerHTML=jsonView(data);}else{document.getElementById('monitoring-dashboard').innerHTML='<div class="empty-state">加载失败</div>';}}
+async function loadMonitoringHistory(){const data=await api('api/monitoring/alerts/history');const c=document.getElementById('monitoring-history');if(!data||!data.history||data.history.length===0){c.innerHTML='<div class="empty-state">暂无历史</div>';return;}c.innerHTML='<table class="table"><thead><tr><th>规则</th><th>严重级</th><th>时间</th></tr></thead><tbody>'+data.history.slice(0,30).map(h=>'<tr><td>'+escapeHtml(h.rule_name)+'</td><td><span class="badge badge-muted">'+escapeHtml(h.severity)+'</span></td><td>'+(h.triggered_at?new Date(h.triggered_at*1000).toLocaleString():'-')+'</td></tr>').join('')+'</tbody></table>';}
+async function ackAlert(ruleName){const result=await api('api/monitoring/alerts/'+encodeURIComponent(ruleName)+'/ack',{method:'POST'});if(result){toast('告警已确认: '+ruleName);loadMonitoringAlerts();}}
+async function recordMetric(){
+    const metricName=document.getElementById('mon-metric-name').value;
+    const value=parseFloat(document.getElementById('mon-metric-value').value);
+    if(isNaN(value)){toast('请输入有效数值','error');return;}
+    const result=await api('api/monitoring/metrics/'+encodeURIComponent(metricName),{method:'POST',body:JSON.stringify({value:value,labels:{}})});
+    const el=document.getElementById('mon-record-result');
+    if(result&&result.success){
+        let html='<div class="badge badge-success">已录入</div> <span style="color:var(--text-muted);font-size:13px">'+escapeHtml(metricName)+' = '+value+'</span>';
+        if(result.new_alerts&&result.new_alerts.length>0){
+            html+='<div style="margin-top:12px"><strong>新触发告警 ('+result.new_alerts_count+'):</strong></div>'+result.new_alerts.map(a=>'<div style="padding:8px;margin-top:6px;background:var(--bg);border-radius:6px"><span class="badge badge-'+(a.level==='critical'?'failed':'warning')+'">'+escapeHtml(a.level)+'</span> <strong>'+escapeHtml(a.rule_name)+'</strong><div style="color:var(--text-muted);font-size:13px;margin-top:4px">'+escapeHtml(a.message||'')+'</div></div>').join('');
+            toast('录入成功，触发 '+result.new_alerts_count+' 条告警');
+        }else{
+            toast('指标已录入，无新告警');
+        }
+        el.innerHTML=html;
+        loadMonitoringAlerts();
+    }else{
+        el.innerHTML='<div class="badge badge-failed">录入失败</div>';
+    }
+}
+function showCreateRuleForm(){
+    const body=`<div class="form-group"><label class="form-label">规则名称</label><input class="form-input" id="rule-new-name" placeholder="如：日成片数过低"></div>
+    <div class="form-row">
+        <div class="form-group"><label class="form-label">指标</label>
+            <select class="form-select" id="rule-new-metric">
+                <option value="daily_videos">daily_videos</option>
+                <option value="daily_assets">daily_assets</option>
+                <option value="agent_success_rate">agent_success_rate</option>
+                <option value="e2e_latency">e2e_latency</option>
+                <option value="api_error_rate">api_error_rate</option>
+            </select>
+        </div>
+        <div class="form-group"><label class="form-label">条件</label>
+            <select class="form-select" id="rule-new-condition">
+                <option value="gt">gt (大于)</option>
+                <option value="lt">lt (小于)</option>
+                <option value="gte">gte (大于等于)</option>
+                <option value="lte">lte (小于等于)</option>
+                <option value="eq">eq (等于)</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group"><label class="form-label">阈值</label><input class="form-input" id="rule-new-threshold" type="number" value="0.9" step="0.01"></div>
+        <div class="form-group"><label class="form-label">级别</label>
+            <select class="form-select" id="rule-new-level">
+                <option value="info">info</option>
+                <option value="warning" selected>warning</option>
+                <option value="critical">critical</option>
+                <option value="fatal">fatal</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group"><label class="form-label">消息模板 (可选，{value} 占位)</label><input class="form-input" id="rule-new-template" placeholder="留空使用默认模板"></div>
+    <div class="form-group"><label class="form-label">冷却时间(秒)</label><input class="form-input" id="rule-new-cooldown" type="number" value="300"></div>`;
+    openModal('新建告警规则', body, async()=>{
+        const name=modalFieldValue('rule-new-name');
+        if(!name){toast('请填写规则名称','error');return;}
+        const payload={
+            name:name,
+            metric:modalFieldValue('rule-new-metric'),
+            condition:modalFieldValue('rule-new-condition'),
+            threshold:parseFloat(modalFieldValue('rule-new-threshold'))||0,
+            level:modalFieldValue('rule-new-level'),
+            message_template:modalFieldValue('rule-new-template')||'',
+            cooldown_sec:parseInt(modalFieldValue('rule-new-cooldown'))||300,
+        };
+        const result=await api('api/monitoring/rules',{method:'POST',body:JSON.stringify(payload)});
+        if(result&&result.success){toast('规则已创建: '+name);closeModal();loadMonitoring();}
+    });
+}
 
 // 初始化
 loadDashboard();
+applyI18n();
 </script>
 </body>
 </html>

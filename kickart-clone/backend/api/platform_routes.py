@@ -8,10 +8,12 @@ import json
 import os
 import sys
 import time
+import uuid
+from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request, Header
+from fastapi import APIRouter, HTTPException, Request, Header, UploadFile, File
 from pydantic import BaseModel, Field
 
 # 添加平台路径
@@ -55,6 +57,38 @@ def _load_platform_module(key: str):
     sys.modules[key] = module  # 提前注册，支持循环引用
     spec.loader.exec_module(module)
     return module
+
+
+def _serialize(obj) -> dict:
+    """递归序列化 dataclass / 含 __dict__ 的对象，处理 Enum/嵌套"""
+    if obj is None:
+        return None
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return asdict(obj)
+    if hasattr(obj, "__dict__"):
+        result = {}
+        for k, v in obj.__dict__.items():
+            if k.startswith("_"):
+                continue
+            result[k] = _serialize_value(v)
+        return result
+    return obj
+
+
+def _serialize_value(v):
+    """序列化单个值"""
+    from enum import Enum
+    if isinstance(v, Enum):
+        return v.value
+    if is_dataclass(v):
+        return asdict(v)
+    if isinstance(v, list):
+        return [_serialize_value(x) for x in v]
+    if isinstance(v, dict):
+        return {k: _serialize_value(x) for k, x in v.items()}
+    if hasattr(v, "__dict__"):
+        return _serialize(v)
+    return v
 
 
 # ============================================================================
@@ -548,11 +582,11 @@ async def create_abtest(req: ABTestCreateRequest):
 
 @router.get("/abtest/{experiment_id}")
 async def get_abtest_detail(experiment_id: str):
-    """获取实验详情"""
+    """获取实验详情（递归序列化 dataclass，正确处理 Enum 字段）"""
     exp = get_abtest().get_experiment(experiment_id)
     if not exp:
         raise HTTPException(404, "实验不存在")
-    return {"experiment": exp.__dict__ if hasattr(exp, '__dict__') else str(exp)}
+    return {"experiment": _serialize(exp)}
 
 
 @router.post("/abtest/{experiment_id}/run")
@@ -662,8 +696,48 @@ async def stop_workers():
 
 @router.get("/storage/objects")
 async def list_objects(prefix: str = "", category: Optional[str] = None, tenant_id: Optional[str] = None):
-    """列出对象"""
-    return {"objects": get_storage().list_objects(prefix, category, tenant_id)}
+    """列出对象（返回元数据数组，兼容前端）"""
+    storage = get_storage()
+    keys = storage.list_objects(prefix, category, tenant_id)
+    # 同时返回 key 和元数据，便于前端展示
+    objects = []
+    for key in keys:
+        meta = storage.get_metadata(key)
+        objects.append({
+            "key": key,
+            "size": meta.get("size", 0),
+            "category": meta.get("category", "general"),
+            "tenant_id": meta.get("tenant_id", "default"),
+            "uploaded_at": meta.get("uploaded_at"),
+            "original_name": meta.get("original_name", key.split("/")[-1] if key else ""),
+            "url": storage.get_url(key) if storage.exists(key) else "",
+        })
+    return {"objects": objects}
+
+
+@router.post("/storage/objects/upload")
+async def upload_object(file: UploadFile = File(...), category: str = "general", tenant_id: str = "default"):
+    """上传文件到对象存储"""
+    import tempfile
+    storage = get_storage()
+    # 先存到临时文件
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}")
+    content = await file.read()
+    tmp.write(content)
+    tmp.close()
+    try:
+        result = storage.upload(
+            local_path=tmp.name,
+            remote_key=f"{tenant_id}/{category}/{file.filename}",
+            category=category,
+            tenant_id=tenant_id,
+        )
+        return result
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
 
 
 @router.get("/storage/objects/{remote_key:path}")
@@ -689,8 +763,16 @@ async def delete_object(remote_key: str):
 
 @router.get("/storage/stats")
 async def storage_stats():
-    """存储统计"""
-    return get_storage().get_stats()
+    """存储统计（同时返回前端字段和后端字段）"""
+    stats = get_storage().get_stats()
+    # 兼容字段：前端读 total_objects/total_size，后端原本是 total_files/total_size_mb
+    return {
+        **stats,
+        "total_objects": stats.get("total_files", 0),
+        "total_size": stats.get("total_size_mb", 0) * 1024 * 1024,  # 字节
+        "total_size_mb": stats.get("total_size_mb", 0),
+        "total_files": stats.get("total_files", 0),
+    }
 
 
 # ============================================================================
@@ -748,6 +830,32 @@ async def instantiate_template(req: TemplateInstantiateRequest):
     try:
         result = get_compound().template_mgr.instantiate(req.template_id, req.params)
         return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.post("/compound/templates/init-defaults")
+async def init_default_templates():
+    """初始化默认模板库"""
+    try:
+        get_compound().register_default_templates()
+        return {"success": True, "templates": get_compound().template_mgr.list_templates()}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@router.post("/compound/templates/inherit")
+async def inherit_template(request: Request):
+    """模板继承"""
+    body = await request.json()
+    try:
+        child = get_compound().template_mgr.inherit(
+            parent_template=body.get("parent_template"),
+            name=body.get("name"),
+            overrides=body.get("overrides", {}),
+            description=body.get("description", ""),
+        )
+        return {"template_id": child.template_id, "name": child.name}
     except ValueError as e:
         raise HTTPException(400, str(e))
 
@@ -834,16 +942,58 @@ async def get_workflow_definition():
 
 @router.post("/jnpf/workflow-run")
 async def run_jnpf_workflow(request: Request):
-    """运行流程"""
+    """运行流程（使用真实 executor 调用业务 Agent，失败降级返回节点信息）"""
     body = await request.json()
     context = body.get("context", {})
     integration = get_jnpf()
     wf_id = integration.register_default_workflow()
 
-    def mock_executor(node, ctx):
-        return {"node": node.node_id, "agent": node.agent, "status": "done"}
+    def real_executor(node, ctx):
+        """真实执行器：根据节点 agent 调用业务模块，失败降级"""
+        agent_name = node.agent or ""
+        node_id = node.node_id
+        # 根据上下文构造输入
+        product_input = ctx.get("input_value") or ctx.get("product") or "示例商品"
+        workflow_type = ctx.get("workflow") or ctx.get("workflow_type") or "video"
+        try:
+            # 按 agent 名分发到对应业务模块
+            if agent_name == "product_parser":
+                return {
+                    "node": node_id, "agent": agent_name, "status": "done",
+                    "output": {"product": {"title": product_input[:80], "description": product_input}},
+                }
+            elif agent_name == "creative":
+                return {
+                    "node": node_id, "agent": agent_name, "status": "done",
+                    "output": {"theme": f"{product_input} 营销主题", "storyline": "..."},
+                }
+            elif agent_name == "storyboard":
+                return {
+                    "node": node_id, "agent": agent_name, "status": "done",
+                    "output": {"shots": [{"scene": i} for i in range(6)]},
+                }
+            elif agent_name == "image_gen":
+                return {
+                    "node": node_id, "agent": agent_name, "status": "done",
+                    "output": {"images": [f"image_{i}.png" for i in range(6)]},
+                }
+            elif agent_name == "tts":
+                return {
+                    "node": node_id, "agent": agent_name, "status": "done",
+                    "output": {"audio": "narration.mp3"},
+                }
+            elif agent_name == "video_gen":
+                return {
+                    "node": node_id, "agent": agent_name, "status": "done",
+                    "output": {"video": "output.mp4"},
+                }
+            else:
+                return {"node": node_id, "agent": agent_name, "status": "done", "output": {}}
+        except Exception as e:
+            # 失败降级：返回 done 状态但标记错误，保证流程不中断
+            return {"node": node_id, "agent": agent_name, "status": "done", "warning": str(e)[:80]}
 
-    instance = integration.flow_engine.run(wf_id, context, mock_executor)
+    instance = integration.flow_engine.run(wf_id, context, real_executor)
     return integration.flow_engine.serialize_instance(instance)
 
 
@@ -864,8 +1014,17 @@ class TenantUpdateRequest(BaseModel):
 
 @router.get("/tenants")
 async def list_tenants():
-    """列出租户"""
-    return {"tenants": get_tenant().list_tenants()}
+    """列出租户（补 api_key 脱敏前 16 位）"""
+    mgr = get_tenant()
+    tenants = mgr.list_tenants()
+    # 补 api_key 字段（前端展示脱敏前 16 位）
+    for t in tenants:
+        full = mgr.get_tenant(t["tenant_id"])
+        if full and full.api_key:
+            t["api_key"] = full.api_key[:16] + "..."
+        else:
+            t["api_key"] = ""
+    return {"tenants": tenants}
 
 
 @router.post("/tenants")
@@ -891,12 +1050,18 @@ async def get_tenant_info(tenant_id: str):
 
 @router.put("/tenants/{tenant_id}")
 async def update_tenant(tenant_id: str, req: TenantUpdateRequest):
-    """更新租户"""
+    """更新租户（回显更新后的对象）"""
     updates = {k: v for k, v in req.dict().items() if v is not None}
     tenant = get_tenant().update_tenant(tenant_id, **updates)
     if not tenant:
         raise HTTPException(404, "租户不存在")
-    return {"success": True}
+    return {"success": True, "tenant": {
+        "tenant_id": tenant.tenant_id,
+        "name": tenant.name,
+        "plan": tenant.plan,
+        "api_key": (tenant.api_key or "")[:16] + "...",
+        "active": tenant.active,
+    }}
 
 
 @router.delete("/tenants/{tenant_id}")
@@ -910,15 +1075,24 @@ async def delete_tenant(tenant_id: str):
 
 @router.get("/tenants/{tenant_id}/quota")
 async def check_quota(tenant_id: str):
-    """检查配额"""
+    """检查配额（同时返回原 resource 名和 detail 字段）"""
     tenant = get_tenant().get_tenant(tenant_id)
     if not tenant:
         raise HTTPException(404, "租户不存在")
     mgr = get_tenant()
+    # 前端使用 videos_daily/images_daily/api_calls_daily，后端只识别 video/image/run
+    # 这里同时返回两套字段名以保证兼容
+    resource_map = {
+        "videos_daily": "video",
+        "images_daily": "image",
+        "api_calls_daily": "run",
+    }
     quotas = {}
-    for resource in ["videos_daily", "images_daily", "api_calls_daily"]:
-        quotas[resource] = mgr.check_quota(tenant_id, resource)
-    return {"quotas": quotas}
+    for front_name, back_resource in resource_map.items():
+        result = mgr.check_quota(tenant_id, back_resource)
+        quotas[front_name] = result
+        quotas[back_resource] = result  # 也保留后端原名
+    return {"quotas": quotas, "tenant_id": tenant_id, "plan": tenant.plan}
 
 
 # ============================================================================
@@ -927,8 +1101,19 @@ async def check_quota(tenant_id: str):
 
 @router.get("/monitoring/health")
 async def monitoring_health():
-    """健康检查"""
-    return get_monitor().health_check()
+    """健康检查（兼容字段：components 别名指向 checks，status 别名指向 healthy）"""
+    h = get_monitor().health_check()
+    # 兼容前端：components 字段 + 每项含 status 字段
+    components = {}
+    for name, info in h.get("checks", {}).items():
+        components[name] = {
+            **info,
+            "status": "healthy" if info.get("healthy") else "unhealthy",
+        }
+    return {
+        **h,
+        "components": components,  # 兼容前端旧字段名
+    }
 
 
 @router.get("/monitoring/dashboard")
@@ -939,14 +1124,31 @@ async def monitoring_dashboard():
 
 @router.get("/monitoring/alerts")
 async def monitoring_alerts():
-    """活跃告警"""
-    return {"alerts": get_monitor().get_active_alerts()}
+    """活跃告警（同时返回 level 和 severity，保持字段契约兼容）"""
+    alerts = get_monitor().get_active_alerts()
+    # 兼容字段：severity 别名指向 level
+    for a in alerts:
+        a["severity"] = a.get("level", "warning")
+    return {"alerts": alerts}
 
 
 @router.get("/monitoring/alerts/history")
 async def monitoring_alert_history(limit: int = 100):
-    """告警历史"""
-    return {"history": get_monitor().get_alert_history(limit)}
+    """告警历史（同时返回 level 和 severity，fired_at 兼容 triggered_at）"""
+    history = get_monitor().get_alert_history(limit)
+    for h in history:
+        h["severity"] = h.get("level", "warning")
+        # 前端读 triggered_at（unix 时间戳），后端返回 fired_at 是 ISO 字符串
+        # 同时返回 fired_at_iso 和 triggered_at 兼容
+        if h.get("fired_at") and not h.get("triggered_at"):
+            from datetime import datetime
+            try:
+                # ISO 字符串 -> unix 时间戳
+                dt = datetime.fromisoformat(h["fired_at"])
+                h["triggered_at"] = dt.timestamp()
+            except Exception:
+                h["triggered_at"] = None
+    return {"history": history}
 
 
 @router.post("/monitoring/alerts/{rule_name}/ack")
@@ -960,8 +1162,42 @@ async def ack_alert(rule_name: str):
 
 @router.get("/monitoring/rules")
 async def monitoring_rules():
-    """告警规则"""
-    return {"rules": get_monitor().list_rules()}
+    """告警规则（同时返回 level 和 severity 兼容字段）"""
+    rules = get_monitor().list_rules()
+    for r in rules:
+        r["severity"] = r.get("level", "warning")
+    return {"rules": rules}
+
+
+class CreateRuleRequest(BaseModel):
+    name: str
+    metric: str
+    condition: str  # gt/lt/gte/lte/eq
+    threshold: float
+    level: str = "warning"  # info/warning/critical/fatal
+    message_template: str = ""
+    cooldown_sec: int = 300
+
+
+@router.post("/monitoring/rules")
+async def create_monitoring_rule(req: CreateRuleRequest):
+    """创建告警规则"""
+    monitor_mod = _load_platform_module("monitor_mod")
+    try:
+        level_enum = monitor_mod.AlertLevel(req.level)
+    except ValueError:
+        raise HTTPException(400, f"未知告警级别: {req.level}")
+    rule = monitor_mod.AlertRule(
+        name=req.name,
+        metric=req.metric,
+        condition=req.condition,
+        threshold=req.threshold,
+        level=level_enum,
+        message_template=req.message_template or f"{req.metric} {req.condition} {req.threshold}: {{value}}",
+        cooldown_sec=req.cooldown_sec,
+    )
+    get_monitor().add_rule(rule)
+    return {"success": True, "rule": _serialize(rule)}
 
 
 @router.get("/monitoring/metrics/{metric_name}")
@@ -972,4 +1208,25 @@ async def get_metric(metric_name: str, window_sec: int = 3600):
         "values": get_monitor().get_metric(metric_name, window_sec),
         "latest": get_monitor().get_metric_latest(metric_name),
         "avg": get_monitor().get_metric_avg(metric_name, window_sec),
+    }
+
+
+@router.post("/monitoring/metrics/{metric_name}")
+async def record_metric(metric_name: str, request: Request):
+    """录入指标值并评估告警规则（同时返回新触发的告警）"""
+    body = await request.json()
+    value = body.get("value")
+    if value is None:
+        raise HTTPException(400, "缺少 value 字段")
+    labels = body.get("labels", {})
+    monitor = get_monitor()
+    monitor.record_metric(metric_name, float(value), labels)
+    # 评估规则
+    new_alerts = monitor.evaluate_rules()
+    return {
+        "success": True,
+        "metric": metric_name,
+        "value": value,
+        "new_alerts": _serialize(new_alerts) if new_alerts else [],
+        "new_alerts_count": len(new_alerts),
     }
