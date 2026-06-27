@@ -418,6 +418,63 @@ iterations:
         title: 最终闭环验证（26/26 测试通过）
         status: completed
 
+  - id: V12-13
+    name: 商用级安全加固与生产部署就绪
+    duration: 1周
+    status: completed
+    deliverables:
+      - 第四轮深度安全审查发现 4 CRITICAL + 8 MEDIUM 安全问题
+      - CRITICAL-1: 注册全局 AuthMiddleware + RateLimitMiddleware，公开路径前缀匹配
+      - CRITICAL-2: login() 密码校验 + User password_hash 字段（PBKDF2-HMAC-SHA256 100k 迭代）
+      - CRITICAL-3: CORS allow_origins=["*"] → 环境变量 KICKART_CORS_ORIGINS 白名单
+      - CRITICAL-4: Webhook 同步阻塞 → 异步线程投递 + SSRF 防护（scheme/IP 黑名单）
+      - MED-2: 上传端点大小限制（默认 50MB）+ MIME/扩展名白名单 + Path().name 文件名净化 + 流式写入
+      - MED-3: JNPF 三处 eval() 全部替换为 ast.literal_eval + 自研 safe_eval_expr（AST 节点白名单求值器）
+      - MED-4: JWT 密钥从 KICKART_JWT_SECRET 环境变量读取（未设置时回退随机密钥仅开发用）
+      - MED-5: 生产环境 KICKART_ENV=production 时关闭 /docs /redoc /openapi.json
+      - MED-6: reload=True 改为非生产环境才启用，生产环境 workers 可配置
+      - MED-7: 添加 TrustedHostMiddleware（KICKART_TRUSTED_HOSTS 环境变量）+ 安全响应头中间件（X-Frame-Options/X-Content-Type-Options/Referrer-Policy/X-XSS-Protection/HSTS）
+      - 前端登录页补全密码输入框（默认 admin123）+ doLogin 发送 password 字段
+      - SDK upload_file 根据扩展名推断 MIME（避免后端 MIME 白名单拒绝 octet-stream）
+      - V9 测试新增密码校验断言（错误密码返回 401）
+    success_criteria:
+      - 4 CRITICAL 全部修复（鉴权/密码/CORS/Webhook）
+      - 8 MEDIUM 全部修复（上传限制/eval/JWT/docs/reload/TrustedHost/响应头）
+      - V7-V10 测试 26/26 全部通过（含密码校验断言）
+      - 生产部署只需设置环境变量即可（KICKART_ENV/KICKART_JWT_SECRET/KICKART_CORS_ORIGINS/KICKART_TRUSTED_HOSTS）
+      - 零 eval() 调用（全部替换为安全求值器）
+    tasks:
+      - id: T13.1
+        title: 第四轮安全审查（4 CRITICAL + 8 MEDIUM）
+        status: completed
+      - id: T13.2
+        title: CRITICAL-1 注册 AuthMiddleware + RateLimitMiddleware
+        status: completed
+      - id: T13.3
+        title: CRITICAL-2 login 密码校验 + PBKDF2 哈希
+        status: completed
+      - id: T13.4
+        title: CRITICAL-3 CORS 环境变量白名单
+        status: completed
+      - id: T13.5
+        title: CRITICAL-4 Webhook 异步投递 + SSRF 防护
+        status: completed
+      - id: T13.6
+        title: MED-2 上传端点大小/类型/文件名三重校验
+        status: completed
+      - id: T13.7
+        title: MED-3 JNPF eval() → AST 安全求值器
+        status: completed
+      - id: T13.8
+        title: MED-4/5/6/7 JWT 密钥 + docs 关闭 + reload + TrustedHost + 安全响应头
+        status: completed
+      - id: T13.9
+        title: 前端登录密码框 + SDK MIME 推断 + V9 测试密码断言
+        status: completed
+      - id: T13.10
+        title: 最终测试验证（26/26 全部通过）
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos

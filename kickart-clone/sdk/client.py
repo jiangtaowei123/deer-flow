@@ -277,8 +277,20 @@ class KickartClient:
             raise KickartError("requests 库未安装")
         import os
         filename = os.path.basename(file_path)
+        # 根据扩展名推断 MIME，避免被后端 MIME 白名单拒绝（requests 默认是 octet-stream）
+        ext_to_mime = {
+            ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+            ".webp": "image/webp", ".gif": "image/gif", ".bmp": "image/bmp",
+            ".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm",
+            ".mp3": "audio/mpeg", ".wav": "audio/wav", ".ogg": "audio/ogg",
+            ".json": "application/json", ".txt": "text/plain",
+            ".md": "text/markdown", ".csv": "text/csv",
+            ".pdf": "application/pdf", ".zip": "application/zip",
+        }
+        ext = os.path.splitext(filename)[1].lower()
+        mime = ext_to_mime.get(ext, "application/octet-stream")
         with open(file_path, "rb") as f:
-            files = {"file": (filename, f)}
+            files = {"file": (filename, f, mime)}
             data = {"category": category, "tenant_id": tenant_id}
             url = self.base_url + "/api/storage/objects/upload"
             headers = {k: v for k, v in self._session.headers.items() if k.lower() != "content-type"}

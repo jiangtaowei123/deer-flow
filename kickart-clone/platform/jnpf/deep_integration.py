@@ -6,7 +6,9 @@ JNPF6.2 深度集成 - 表单引擎、流程引擎、页面渲染器
 3. 页面渲染器 - 低代码页面 JSON → HTML 渲染
 这是对 adapter.py 的深度扩展，使 Kickart Clone 真正嵌入 JNPF6.2 生态
 """
+import ast
 import json
+import operator
 import re
 import sys
 import time
@@ -16,6 +18,108 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Optional
+
+
+# ============================================================================
+# 安全表达式求值器（替代 eval()）
+# ============================================================================
+
+_SAFE_BINOPS = {
+    ast.Eq: operator.eq,
+    ast.NotEq: operator.ne,
+    ast.Lt: operator.lt,
+    ast.LtE: operator.le,
+    ast.Gt: operator.gt,
+    ast.GtE: operator.ge,
+    ast.And: lambda a, b: a and b,
+    ast.Or: lambda a, b: a or b,
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Mod: operator.mod,
+    ast.In: lambda a, b: a in b,
+    ast.NotIn: lambda a, b: a not in b,
+}
+_SAFE_UNARYOPS = {
+    ast.Not: operator.not_,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
+
+
+def safe_eval_expr(expr: str, context: dict) -> bool:
+    """
+    安全表达式求值（替代 eval()）。
+    支持：比较、布尔运算、算术、in/not in、变量引用、字面量。
+    禁止：函数调用、属性访问、import、任何名字解析为内置。
+    """
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        return False
+
+    def _eval(node):
+        if isinstance(node, ast.Expression):
+            return _eval(node.body)
+        if isinstance(node, ast.BoolOp):
+            values = [_eval(v) for v in node.values]
+            op = _SAFE_BINOPS.get(type(node.op))
+            if op is None:
+                raise ValueError("不支持的布尔运算")
+            result = values[0]
+            for v in values[1:]:
+                result = op(result, v)
+            return result
+        if isinstance(node, ast.BinOp):
+            left = _eval(node.left)
+            right = _eval(node.right)
+            op = _SAFE_BINOPS.get(type(node.op))
+            if op is None:
+                raise ValueError("不支持的二元运算")
+            return op(left, right)
+        if isinstance(node, ast.UnaryOp):
+            operand = _eval(node.operand)
+            op = _SAFE_UNARYOPS.get(type(node.op))
+            if op is None:
+                raise ValueError("不支持的一元运算")
+            return op(operand)
+        if isinstance(node, ast.Compare):
+            left = _eval(node.left)
+            for op_node, right_node in zip(node.ops, node.comparators):
+                right = _eval(right_node)
+                op = _SAFE_BINOPS.get(type(op_node))
+                if op is None:
+                    raise ValueError("不支持的比较运算")
+                if not op(left, right):
+                    return False
+                left = right
+            return True
+        if isinstance(node, ast.Name):
+            # 仅允许从 context 取值，禁止任何 builtins
+            if node.id == "True":
+                return True
+            if node.id == "False":
+                return False
+            if node.id == "None":
+                return None
+            return context.get(node.id)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.List):
+            return [_eval(e) for e in node.elts]
+        if isinstance(node, ast.Tuple):
+            return tuple(_eval(e) for e in node.elts)
+        if isinstance(node, ast.Set):
+            return {_eval(e) for e in node.elts}
+        if isinstance(node, ast.Dict):
+            return {_eval(k): _eval(v) for k, v in zip(node.keys, node.values)}
+        raise ValueError(f"不支持的表达式节点: {type(node).__name__}")
+
+    try:
+        return bool(_eval(tree))
+    except Exception:
+        return False
 
 
 # ============================================================================
@@ -201,10 +305,10 @@ class FormEngine:
             elif condition.startswith("< "):
                 return float(value) < float(condition[2:])
             elif condition.startswith("in "):
-                target_list = eval(condition[3:])  # noqa: S307 - 受控环境
+                target_list = ast.literal_eval(condition[3:])  # 安全：仅解析字面量
                 return value in target_list
             elif condition.startswith("not in "):
-                target_list = eval(condition[7:])  # noqa: S307
+                target_list = ast.literal_eval(condition[7:])  # 安全：仅解析字面量
                 return value not in target_list
             else:
                 return bool(value)
@@ -442,12 +546,11 @@ class FlowEngine:
         return result
 
     def _eval_branch_condition(self, condition: str, context: dict) -> bool:
-        """评估分支条件"""
+        """评估分支条件（使用安全求值器，禁止任意代码执行）"""
         try:
-            # 简单条件评估，支持 context 变量引用
-            # 如: "workflow_type == 'video'" / "num_scenes >= 5"
-            local_ctx = context.copy()
-            return bool(eval(condition, {"__builtins__": {}}, local_ctx))  # noqa: S307
+            # 支持 context 变量引用，如:
+            #   "workflow_type == 'video'" / "num_scenes >= 5" / "a > 1 and b < 2"
+            return safe_eval_expr(condition, context)
         except Exception:
             return False
 

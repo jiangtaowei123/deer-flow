@@ -10,8 +10,9 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -43,15 +44,61 @@ app = FastAPI(
     title="Kickart Clone API",
     description="一站式营销创作平台 - 商品解析 + 批量图像生成 + 多 Agent 编排 + 平台能力",
     version="2.0.0",
+    # 生产环境可通过环境变量关闭文档
+    docs_url=None if os.environ.get("KICKART_ENV") == "production" else "/docs",
+    redoc_url=None if os.environ.get("KICKART_ENV") == "production" else "/redoc",
+    openapi_url=None if os.environ.get("KICKART_ENV") == "production" else "/openapi.json",
 )
 
+# CORS：从环境变量读取白名单，默认允许本地开发
+_cors_origins = os.environ.get("KICKART_CORS_ORIGINS", "http://localhost:8765,http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in _cors_origins if o.strip()],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
     allow_headers=["*"],
 )
+
+# TrustedHost：生产环境必须配置白名单，开发环境允许任意 host
+_trusted_hosts = os.environ.get("KICKART_TRUSTED_HOSTS", "*").split(",")
+if _trusted_hosts != ["*"]:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=[h.strip() for h in _trusted_hosts if h.strip()],
+    )
+
+
+# 安全响应头中间件（轻量、无外部依赖）
+@app.middleware("http")
+async def _security_headers_middleware(request: Request, call_next):
+    response: Response = await call_next(request)
+    # 仅对 HTTP 响应添加安全头（不对静态文件 ServerError产生影响）
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    # HSTS 仅在 HTTPS 时启用
+    if request.url.scheme == "https":
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return response
+
+# 注册安全中间件（鉴权 + 速率限制）
+# AuthMiddleware 的 PUBLIC_PATHS 已包含 /health /docs 等，login 端点也需公开
+try:
+    from platform_routes import _get_tenant_manager_for_middleware
+    _tenant_mgr = _get_tenant_manager_for_middleware()
+    from observability.middleware import AuthMiddleware, RateLimitMiddleware
+    app.add_middleware(RateLimitMiddleware, requests_per_minute=60, burst=10)
+    app.add_middleware(AuthMiddleware, tenant_manager=_tenant_mgr)
+    # 扩展公开路径：登录/SSO 回调/i18n 语言列表不需要鉴权
+    AuthMiddleware.PUBLIC_PATHS.update({
+        "/api/auth/login", "/api/auth/refresh", "/api/auth/sso/authorize-url",
+        "/api/i18n/languages",
+    })
+except ImportError:
+    # 中间件模块不可用时优雅降级（开发环境）
+    pass
 
 # 挂载平台路由（V3-V7 所有模块）
 app.include_router(platform_router)
@@ -423,10 +470,12 @@ async def index():
 
 if __name__ == "__main__":
     import uvicorn
+    _is_prod = os.environ.get("KICKART_ENV") == "production"
     uvicorn.run(
         "api:app",
         host="0.0.0.0",
-        port=8765,
-        reload=True,
+        port=int(os.environ.get("KICKART_PORT", "8765")),
+        reload=not _is_prod,  # 生产环境必须关闭 reload
+        workers=int(os.environ.get("KICKART_WORKERS", "1")) if _is_prod else 1,
         log_level="info",
     )

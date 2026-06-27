@@ -112,7 +112,10 @@ def get_sso():
     global _sso
     if _sso is None:
         mod = _load_platform_module("sso")
-        _sso = mod.SSOManager()
+        # JWT 密钥优先从环境变量读取（商用部署必须设置）；
+        # 未设置时回退到 SSOManager 内部的随机密钥（仅适用开发环境）
+        jwt_secret = os.environ.get("KICKART_JWT_SECRET") or None
+        _sso = mod.SSOManager(jwt_secret=jwt_secret)
     return _sso
 
 
@@ -188,6 +191,14 @@ def get_tenant():
     return _tenant
 
 
+def _get_tenant_manager_for_middleware():
+    """供 AuthMiddleware 使用的租户管理器获取函数"""
+    try:
+        return get_tenant()
+    except Exception:
+        return None
+
+
 def get_monitor():
     global _monitor
     if _monitor is None:
@@ -224,14 +235,21 @@ class SSOCallbackRequest(BaseModel):
 
 @router.post("/auth/login")
 async def login(req: LoginRequest):
-    """本地登录（通过用户名查找并创建会话）"""
+    """本地登录（用户名 + 密码校验）"""
     mgr = get_sso()
-    # 按用户名查找
     user = next((u for u in mgr.users.values() if u.username == req.username), None)
     if not user:
         raise HTTPException(404, "用户不存在")
     if not user.active:
         raise HTTPException(403, "用户已禁用")
+    # 密码校验：若用户有 password_hash 则必须验证；无 password_hash 的 SSO 用户不允许本地登录
+    if user.password_hash:
+        if not req.password:
+            raise HTTPException(401, "密码不能为空")
+        if not mgr._verify_password(req.password, user.password_hash):
+            raise HTTPException(401, "密码错误")
+    else:
+        raise HTTPException(403, "该用户仅支持 SSO 登录，请使用 SSO 授权")
     session = mgr.create_session(user)
     return {
         "session_id": session.session_id,
@@ -736,23 +754,74 @@ async def list_objects(prefix: str = "", category: Optional[str] = None, tenant_
     return {"objects": objects}
 
 
+_UPLOAD_MAX_BYTES = int(os.environ.get("KICKART_UPLOAD_MAX_MB", "50")) * 1024 * 1024
+_UPLOAD_ALLOWED_MIME = {
+    "image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp",
+    "video/mp4", "video/quicktime", "video/webm",
+    "audio/mpeg", "audio/wav", "audio/ogg",
+    "application/json", "text/plain", "text/markdown", "text/csv",
+    "application/pdf", "application/zip",
+}
+_UPLOAD_ALLOWED_EXT = {
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp",
+    ".mp4", ".mov", ".webm",
+    ".mp3", ".wav", ".ogg",
+    ".json", ".txt", ".md", ".csv",
+    ".pdf", ".zip",
+}
+
+
 @router.post("/storage/objects/upload")
 async def upload_object(file: UploadFile = File(...), category: str = "general", tenant_id: str = "default"):
-    """上传文件到对象存储"""
+    """上传文件到对象存储（含大小限制、MIME/扩展名白名单、文件名净化）"""
     import tempfile
     storage = get_storage()
-    # 先存到临时文件
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}")
-    content = await file.read()
-    tmp.write(content)
-    tmp.close()
+
+    # 1. 文件名净化：取 basename，防路径穿越
+    raw_name = file.filename or "upload.bin"
+    safe_name = Path(raw_name).name  # 去掉任何路径前缀
+    if not safe_name or safe_name in (".", ".."):
+        raise HTTPException(400, "非法文件名")
+
+    # 2. 扩展名白名单
+    ext = Path(safe_name).suffix.lower()
+    if ext and ext not in _UPLOAD_ALLOWED_EXT:
+        raise HTTPException(400, f"不支持的文件扩展名: {ext}")
+
+    # 3. MIME 白名单（若客户端提供了 content-type）
+    ctype = (file.content_type or "").split(";")[0].strip().lower()
+    if ctype and ctype not in _UPLOAD_ALLOWED_MIME:
+        raise HTTPException(400, f"不支持的文件类型: {ctype}")
+
+    # 4. 流式写入临时文件并校验大小，避免大文件内存溢出
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=f"_{safe_name}")
+    total = 0
     try:
+        while True:
+            chunk = await file.read(1024 * 1024)  # 1MB chunks
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > _UPLOAD_MAX_BYTES:
+                tmp.close()
+                try:
+                    os.unlink(tmp.name)
+                except Exception:
+                    pass
+                raise HTTPException(413, f"文件超过大小限制: {_UPLOAD_MAX_BYTES // (1024*1024)}MB")
+            tmp.write(chunk)
+        tmp.close()
+
         result = storage.upload(
             local_path=tmp.name,
-            remote_key=f"{tenant_id}/{category}/{file.filename}",
+            remote_key=f"{tenant_id}/{category}/{safe_name}",
             category=category,
             tenant_id=tenant_id,
         )
+        # 注入原始安全文件名供前端展示
+        if isinstance(result, dict):
+            result.setdefault("original_name", safe_name)
+            result.setdefault("size", total)
         return result
     finally:
         try:

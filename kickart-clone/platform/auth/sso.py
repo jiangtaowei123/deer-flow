@@ -83,6 +83,8 @@ class User:
     # SSO 相关
     sso_provider: Optional[str] = None  # oauth2/oidc/saml/ldap
     sso_subject: Optional[str] = None  # SSO 提供商返回的唯一标识
+    # 密码哈希（本地登录用，None 表示仅 SSO 登录或种子用户）
+    password_hash: Optional[str] = None
 
 
 @dataclass
@@ -235,7 +237,7 @@ class SSOManager:
             }, f, ensure_ascii=False, indent=2)
 
     def _seed_default_admin(self):
-        """种子默认 admin 用户（首次启动时创建，便于登录测试）"""
+        """种子默认 admin 用户（首次启动时创建，默认密码 admin123，商用环境应立即修改）"""
         admin = User(
             user_id="user_admin_default",
             username="admin",
@@ -243,6 +245,7 @@ class SSOManager:
             tenant_id="default",
             role="admin",
             created_at=time.time(),
+            password_hash=self._hash_password("admin123"),
         )
         self.users[admin.user_id] = admin
         # 也补一个默认 tenant（避免后续查询出错）
@@ -250,6 +253,28 @@ class SSOManager:
             self._save_users()
         except Exception:
             pass
+
+    @staticmethod
+    def _hash_password(password: str) -> str:
+        """密码哈希（PBKDF2-HMAC-SHA256）"""
+        salt = secrets.token_bytes(16)
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100000)
+        return f"pbkdf2$100000${salt.hex()}${dk.hex()}"
+
+    @staticmethod
+    def _verify_password(password: str, stored: str) -> bool:
+        """验证密码"""
+        try:
+            parts = stored.split("$")
+            if len(parts) != 4 or parts[0] != "pbkdf2":
+                return False
+            iterations = int(parts[1])
+            salt = bytes.fromhex(parts[2])
+            expected = bytes.fromhex(parts[3])
+            dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations)
+            return hmac.compare_digest(dk, expected)
+        except Exception:
+            return False
 
     # ============ 用户管理 ============
 

@@ -37,8 +37,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         settings = get_settings()
 
-        # 公开路径跳过
-        if request.url.path in self.PUBLIC_PATHS:
+        # 公开路径跳过（支持前缀匹配，如 /api/auth/sso/authorize-url/{tenant}）
+        path = request.url.path
+        if path in self.PUBLIC_PATHS or any(path.startswith(p) for p in self.PUBLIC_PATHS):
             return await call_next(request)
 
         # 未启用鉴权

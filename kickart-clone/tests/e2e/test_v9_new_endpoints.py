@@ -269,9 +269,9 @@ def test_auth_sso_and_seed_admin():
         record("TestClient 初始化", False, str(e)[:80])
         return False
 
-    # 4.1 种子 admin 登录
+    # 4.1 种子 admin 登录（含默认密码 admin123）
     try:
-        r = client.post("/api/auth/login", json={"username": "admin"})
+        r = client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
         assert r.status_code == 200, f"登录失败: {r.status_code} {r.text[:200]}"
         login = r.json()
         assert login.get("token"), "登录响应缺少 token"
@@ -281,6 +281,14 @@ def test_auth_sso_and_seed_admin():
         record("种子 admin 登录", True, f"user_id={login['user'].get('user_id')}")
     except AssertionError as e:
         record("种子 admin 登录", False, str(e)[:120])
+
+    # 4.1.1 密码错误应返回 401（验证密码校验逻辑）
+    try:
+        r = client.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
+        assert r.status_code == 401, f"错误密码应被拒绝: {r.status_code} {r.text[:120]}"
+        record("密码校验", True, "错误密码返回 401")
+    except AssertionError as e:
+        record("密码校验", False, str(e)[:120])
 
     # 4.2 SSO 授权 URL（即使未配置也应返回 404，不应 500）
     try:

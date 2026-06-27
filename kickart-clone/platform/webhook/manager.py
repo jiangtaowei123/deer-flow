@@ -142,6 +142,9 @@ class WebhookManager:
         timeout_sec: int = 10,
     ) -> WebhookSubscription:
         """创建订阅"""
+        # SSRF 防护：校验 URL scheme 和目标地址
+        self._validate_webhook_url(url)
+
         # 验证事件类型
         valid_events = set()
         for e in events:
@@ -210,7 +213,7 @@ class WebhookManager:
 
     def publish(self, event_type: str, payload: dict, tenant_id: Optional[str] = None) -> list:
         """
-        发布事件
+        发布事件（异步投递，不阻塞调用方）
         返回投递记录 ID 列表
         """
         try:
@@ -229,7 +232,7 @@ class WebhookManager:
                 if "*" in sub.events or event.value in sub.events:
                     matched_subs.append(sub)
 
-        # 创建投递记录
+        # 创建投递记录并异步投递
         delivery_ids = []
         for sub in matched_subs:
             delivery = WebhookDelivery(
@@ -248,10 +251,41 @@ class WebhookManager:
             with self._lock:
                 self.deliveries[delivery.delivery_id] = delivery
             delivery_ids.append(delivery.delivery_id)
-            # 同步投递（生产环境应改为异步队列）
-            self._deliver(delivery, sub)
+            # 异步投递（线程池，不阻塞 API 响应）
+            self._deliver_async(delivery, sub)
 
         return delivery_ids
+
+    def _deliver_async(self, delivery: WebhookDelivery, sub: WebhookSubscription):
+        """异步投递（线程池后台执行）"""
+        import threading
+        thread = threading.Thread(
+            target=self._deliver, args=(delivery, sub), daemon=True
+        )
+        thread.start()
+
+    @staticmethod
+    def _validate_webhook_url(url: str):
+        """SSRF 防护：校验 Webhook URL"""
+        from urllib.parse import urlparse
+        import ipaddress
+        parsed = urlparse(url)
+        # 仅允许 http/https
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError(f"Webhook URL 仅支持 http/https，收到: {parsed.scheme}")
+        if not parsed.hostname:
+            raise ValueError("Webhook URL 缺少主机名")
+        # 屏蔽私网/回环/元数据地址
+        hostname = parsed.hostname
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
+                raise ValueError(f"Webhook URL 不允许指向内网地址: {hostname}")
+        except ValueError:
+            # 非 IP 地址（域名），检查是否为已知元数据地址
+            blocked_hosts = {"169.254.169.254", "metadata.google.internal"}
+            if hostname in blocked_hosts:
+                raise ValueError(f"Webhook URL 不允许指向元数据服务: {hostname}")
 
     def _deliver(self, delivery: WebhookDelivery, sub: WebhookSubscription):
         """执行投递（带重试）"""
