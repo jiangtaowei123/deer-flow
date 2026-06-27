@@ -491,6 +491,7 @@ class FlowEngine:
             "completed_at": datetime.fromtimestamp(instance.completed_at).isoformat() if instance.completed_at else None,
             "error": instance.error,
             "context_keys": list(instance.context.keys()),
+            "context": instance.context,
         }
 
 

@@ -382,6 +382,42 @@ iterations:
         title: 最终测试验证（23/23 全部通过）
         status: completed
 
+  - id: V11-12
+    name: SDK 覆盖率提升与 JNPF 指令集深度集成
+    duration: 1周
+    status: completed
+    deliverables:
+      - SDK client.py 从 11 个方法扩展到 69 个方法（覆盖率 13%→100%）
+      - 新增 12 个平台能力模块封装：认证 SSO、租户管理、LLM 路由、AB 测试、对象存储、任务队列、Webhook、监控告警、JNPF 低代码、复利系统、国际化 i18n
+      - 新增 _put/_delete 内部方法 + _get 支持 params 查询参数
+      - JNPF workflow-run 从硬编码占位输出改为接入复利系统指令集（_BuiltinInstructionEngine）
+      - agent→指令映射：creative→generate.creative、storyboard→generate.storyboard、image_gen→generate.images、video_gen→generate.video
+      - FlowEngine.serialize_instance 补充 context 完整输出（原仅返回 context_keys）
+      - 前端 loadDashboard 移除 2 个冗余 API 调用（health/monDash 获取未用）
+      - SDK get_translations 修正端点契约（path param→query param）
+      - 新增 V10 测试文件覆盖 SDK 方法覆盖率 + JNPF 指令集集成 + SDK 端到端调用
+    success_criteria:
+      - SDK 69/69 方法全部实现（零空壳方法）
+      - JNPF workflow-run 5 节点通过复利指令集驱动执行
+      - V7-V10 测试 26/26 全部通过（8.54s）
+      - 前后端 + SDK 契约 100% 对齐
+    tasks:
+      - id: T12.1
+        title: SDK 补全 12 个平台能力模块的 58 个新方法
+        status: completed
+      - id: T12.2
+        title: JNPF workflow-run 接入复利系统 _BuiltinInstructionEngine
+        status: completed
+      - id: T12.3
+        title: 前端 loadDashboard 移除冗余 API 调用
+        status: completed
+      - id: T12.4
+        title: 新增 V10 测试（SDK 覆盖率 + JNPF 指令集 + 端到端）
+        status: completed
+      - id: T12.5
+        title: 最终闭环验证（26/26 测试通过）
+        status: completed
+
 # 度量体系
 metrics:
   - name: daily_videos

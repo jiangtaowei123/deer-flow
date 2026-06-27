@@ -963,55 +963,57 @@ async def get_workflow_definition():
 
 @router.post("/jnpf/workflow-run")
 async def run_jnpf_workflow(request: Request):
-    """运行流程（使用真实 executor 调用业务 Agent，失败降级返回节点信息）"""
+    """运行流程（接入复利系统指令集，按节点 agent 调用对应指令）"""
     body = await request.json()
     context = body.get("context", {})
     integration = get_jnpf()
     wf_id = integration.register_default_workflow()
+    # 获取复利系统扩展（提供指令引擎 + 组合编排）
+    compound = get_compound()
+    instruction_engine = compound.composition_engine.instruction_engine
+
+    # agent 名 → 复利系统指令名 映射
+    AGENT_TO_INSTRUCTION = {
+        "product_parser": None,  # 解析阶段无对应指令，直接返回上下文
+        "creative": "generate.creative",
+        "storyboard": "generate.storyboard",
+        "image_gen": "generate.images",
+        "tts": None,  # TTS 由 video 指令内部处理
+        "video_gen": "generate.video",
+    }
 
     def real_executor(node, ctx):
-        """真实执行器：根据节点 agent 调用业务模块，失败降级"""
+        """真实执行器：通过复利系统指令集驱动每个节点"""
         agent_name = node.agent or ""
         node_id = node.node_id
-        # 根据上下文构造输入
         product_input = ctx.get("input_value") or ctx.get("product") or "示例商品"
-        workflow_type = ctx.get("workflow") or ctx.get("workflow_type") or "video"
+        num_scenes = ctx.get("num_scenes", 6)
         try:
-            # 按 agent 名分发到对应业务模块
             if agent_name == "product_parser":
                 return {
                     "node": node_id, "agent": agent_name, "status": "done",
                     "output": {"product": {"title": product_input[:80], "description": product_input}},
                 }
-            elif agent_name == "creative":
-                return {
-                    "node": node_id, "agent": agent_name, "status": "done",
-                    "output": {"theme": f"{product_input} 营销主题", "storyline": "..."},
-                }
-            elif agent_name == "storyboard":
-                return {
-                    "node": node_id, "agent": agent_name, "status": "done",
-                    "output": {"shots": [{"scene": i} for i in range(6)]},
-                }
-            elif agent_name == "image_gen":
-                return {
-                    "node": node_id, "agent": agent_name, "status": "done",
-                    "output": {"images": [f"image_{i}.png" for i in range(6)]},
-                }
-            elif agent_name == "tts":
-                return {
-                    "node": node_id, "agent": agent_name, "status": "done",
-                    "output": {"audio": "narration.mp3"},
-                }
-            elif agent_name == "video_gen":
-                return {
-                    "node": node_id, "agent": agent_name, "status": "done",
-                    "output": {"video": "output.mp4"},
-                }
-            else:
+            instruction = AGENT_TO_INSTRUCTION.get(agent_name)
+            if instruction is None:
                 return {"node": node_id, "agent": agent_name, "status": "done", "output": {}}
+            # 构造指令参数（从上下文累积上游产物）
+            params = {"product_info": ctx.get("product_parser", {}).get("output", {}).get("product", {"title": product_input})}
+            if agent_name == "storyboard":
+                creative_out = ctx.get("creative", {}).get("output", {})
+                params["creative"] = creative_out
+                params["num_scenes"] = num_scenes
+            elif agent_name == "image_gen":
+                sb_out = ctx.get("storyboard", {}).get("output", {})
+                params["storyboard"] = sb_out.get("storyboard", sb_out)
+            # 调用复利系统指令引擎
+            result = instruction_engine.execute(instruction, params)
+            if not result.get("success", False):
+                return {"node": node_id, "agent": agent_name, "status": "done",
+                        "warning": result.get("error", "指令执行失败"), "output": {}}
+            return {"node": node_id, "agent": agent_name, "status": "done",
+                    "instruction": instruction, "output": result}
         except Exception as e:
-            # 失败降级：返回 done 状态但标记错误，保证流程不中断
             return {"node": node_id, "agent": agent_name, "status": "done", "warning": str(e)[:80]}
 
     instance = integration.flow_engine.run(wf_id, context, real_executor)

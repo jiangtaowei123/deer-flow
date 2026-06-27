@@ -678,8 +678,8 @@ function modalFieldValue(id){const el=document.getElementById(id);return el?el.v
 
 // ===== Dashboard =====
 async function loadDashboard(){
-    const [health, llmStatus, runs, monDash] = await Promise.all([
-        api('health'), api('api/llm/status'), api('orchestrate'), api('api/monitoring/dashboard')
+    const [llmStatus, runs] = await Promise.all([
+        api('api/llm/status'), api('orchestrate')
     ]);
     if(runs&&runs.runs){
         const successCount=runs.runs.filter(r=>r.status==='success').length;

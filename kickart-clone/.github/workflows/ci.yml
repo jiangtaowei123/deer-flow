@@ -116,6 +116,10 @@ jobs:
         working-directory: kickart-clone
         run: python -m pytest tests/e2e/test_v9_new_endpoints.py -v --tb=short
 
+      - name: Run V10 SDK + JNPF integration tests (platform, blocking)
+        working-directory: kickart-clone
+        run: python -m pytest tests/e2e/test_v10_sdk_jnpf.py -v --tb=short
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
